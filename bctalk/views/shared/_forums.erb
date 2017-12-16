@@ -1,0 +1,21 @@
+<%
+forums = Tweb::Bctalk.cache['s9_checked_forums']||Forums.filter(siteid:9,check:1).all
+#pfids = forums.map(&:parent_fid)
+parents = Tweb::Bctalk.cache['s9_parents_forchecked']
+%>
+<table style="width:90%;">
+  <tr>
+    <td valign="top">
+      <% forums.each do |f| %>
+        <% pforum = parents.find{|pf| pf.fid == f.parent_fid} if parents%>
+        <br/>
+        CHECK[
+        <a href='<%= "/bctalk/bot/check_forum/#{f.fid}/pg/1" %>'>p1</a>,
+        ]
+        <a href='<%= "/bctalk/forum/max_responses/#{f.fid}" %>'>max_responses</a> ||
+        <a href="/bctalk/forum/show/<%= f.fid %>">(<%= f.fid %>) <%= f.title %></a> << <%= pforum.title if pforum %>
+
+      <% end if forums%>
+    </td>
+  </tr>
+</table>

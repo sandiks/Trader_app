@@ -1,0 +1,22 @@
+<div style="margin-top:20px;">
+   
+  <table id="mapped" class="forumTable" style="width:80%;">
+    <tbody>
+      <tr>
+        <th>group</th>
+        <th>orders buy</th>
+        <th>orders sell</th>
+      </tr>
+      
+      <% for item in @mapped %>
+      <tr>
+        <td><%=item[:group]%></td>
+        <td><%= item[:buy_orders].join('<br />').html_safe %></td>
+        <td><%= item[:sell_orders].join('<br />').html_safe %></td>
+      </tr>
+      <% end%>
+    </tbody>
+  </table>  
+
+
+</div>

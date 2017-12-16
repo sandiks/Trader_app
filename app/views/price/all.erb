@@ -1,0 +1,114 @@
+<%= partial 'shared/buy_sell_dialog' %>
+<%= partial 'shared/text_price_dialog' %>
+<%= partial 'shared/orders_dialog' %>
+<%= partial 'shared/pump_dialog' %>
+
+<script>
+$(function(){
+
+  $('.btn_set_pump_level').click(function() {
+    var curr = $(this).data('curr');
+    var level = $(this).data('level');
+
+    $.get('/manage/set_pumped/',{curr:curr,level:level}, function(data) {
+        alert(data);
+    });
+  }); 
+
+  $('.btn_add_to_simul').click(function() {
+    var curr = $(this).data('curr');
+
+    $.get('/trade/add_to_simul/',{curr:curr}, function(data) {
+        alert(data);
+    });
+  }); 
+
+}); 
+
+</script>
+
+<div style="color:green;">
+  <ul>
+   <li><a href="/price/falling/12">falling 12h</a> </li>
+   <li><a href="/price/falling/24">falling 24h</a> </li>
+   <li><a href="/price/falling/48">falling 48h</a> </li>
+   <li><a href="/price/falling/72">falling 72h</a> </li>
+  </ul>
+</div>
+
+<div style="margin:20px;20px;">
+  <div style="color:red;margin-bottom:20px;">
+    ALL 
+  </div>
+
+  <button class="btn_show_tracked_pump btn_style_red" data-type="min_prices">SHOW PUMP(MIN PRICED)</button>
+
+  <table class="forumTable" style="width:90%;">
+    <tbody>
+      <tr>
+        <th style="width:2%;">ID</th>
+        <th style="width:8%;">name</th>
+        <th style="width:10%;">bid-ask</th>
+        <th style="width:20%;">history</th>
+        <th style="width:7%;">[track]</th>
+        <th style="width:7%;">PUMP</th>
+        <th style="width:10%;">BUY/SELL</th>
+        <th style="width:10%;">prices</th>
+        <th style="width:10%;">HISTORY</th>
+      </tr>
+      
+      <%  @all.each_with_index do |item, idx| %>
+
+      <tr>
+        <% mname = item[:name]
+         exist = @my_balance[mname.sub('BTC-','')]
+         pair_balance_info=""
+         if exist
+          pair_balance_info = "BALANCE #{'%0.2f' % exist[:usdt]}"
+         end 
+
+        %>
+
+        <td ><%= idx %></td>
+
+        <td style="width:10%;"><a href="<%= "/pump/show_pump/#{mname}" %>"><%=mname%>  </a>  <%= pair_balance_info%> </td>
+        
+        <td>
+           <%= ('<b>%0.8f %0.8f </b>' % [item[:Bid],item[:Ask]]).html_safe%>
+        </td>
+
+        <td>
+          <%= item[:hist_volumes].html_safe if  item[:hist_volumes]%>
+        </td>
+
+        <td style="text-align:center">
+          <a href='<%= "/manage/enabled/#{mname}" %>'>DISABLE</a>
+          <br />
+          <a href="https://bittrex.com/Market/Index?MarketName=<%= mname %>">BITTREX</a>
+          <br />
+          PUMP: <%=item[:pumped]%>
+
+        </td>
+        <td style="text-align:center">
+          <button class="btn_set_pump_level btn_style_red" data-level='0' data-curr="<%=mname %>">pump 0</button>
+          <button class="btn_set_pump_level btn_style_red" data-level='1' data-curr="<%=mname %>">pump 1</button>
+          <button class="btn_set_pump_level btn_style_red" data-level='2' data-curr="<%=mname %>">pump 2</button>
+        </td>
+
+        <td>
+          <button class="btn_buy_sell btn_style_green" data-curr="<%=mname%>">BUY-SELL <%=mname %></button>
+        </td>
+
+        <td>
+          <button class="btn_hours_price btn_style_blue" data-otype="ask" data-hours="48" data-market="<%=mname%>">72h prices <%=mname%></button> 
+        </td>
+
+        <td><button class="btn_hist_orders btn_style_blue" data-market="<%=mname %>">hist <%=mname %></button></td>
+
+        
+      </tr>
+
+      <% end%>
+    </tbody>
+  </table>
+</div>

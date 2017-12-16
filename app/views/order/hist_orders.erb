@@ -1,0 +1,53 @@
+<div style="margin-top:20px;">
+
+    <table style="width:90%;">
+      <tr>
+        <td>
+
+            LIMIT_BUY  <%=@pair%>
+            <table class="forumTable" style="width:100%;">
+              <tbody>
+                <tr>
+                  <th>TimeStamp</th>
+                  <th>Quantity</th>
+                  <th>Limit</th>
+                </tr>
+                
+                <% for item in @bought %>
+                <tr>
+                  <td><%=item.TimeStamp.strftime("%F %k:%M ")%></td>
+                  <td><%= '%0.4f' % item.Quantity%></td>
+                  <td><%= '%0.8f' %item.Limit%></td>
+                </tr>
+                <% end%>
+              </tbody>
+            </table>   
+
+        </td>
+        
+        <td style="width:10%;"></td>
+
+        <td>LIMIT_SELL  <%=@pair%>
+            <table class="forumTable" style="width:100%;">
+              <tbody>
+                <tr>
+                  <th>TimeStamp</th>
+                  <th>Quantity</th>
+                  <th>Limit</th>
+                </tr>
+                
+                <% for item in @selled %>
+                <tr>
+                  <td><%=item.TimeStamp.strftime("%F %k:%M ")%></td>
+                  <td><%= '%0.4f' % item.Quantity%></td>
+                  <td><%= '%0.8f' %item.Limit%></td>
+                </tr>
+                <% end%>
+              </tbody>
+            </table>
+          
+        </td>
+      </tr>
+    </table>
+
+</div>

@@ -1,0 +1,46 @@
+<script type="text/javascript">
+
+$(function() {
+
+    $('#btn_copy_to_profile').click(function() {
+      $.get('/manage/copy_to_profile', function(data) {
+          alert('copy_to_profile')
+      });
+    });  
+
+});
+</script>
+
+<div style="margin-top:20px;">
+  <div style="color:red;">
+    Manage,  profile <%= get_trading_mode %>
+  </div>
+  <button id='btn_copy_to_profile' class="btn_style_red">copy to profile</button>
+
+  <table class="forumTable" style="width:30%;">
+    <tbody>
+      <tr>
+        <th>N</th>
+        <th>name</th>
+        <th>track/untrack</th>
+      </tr>
+      
+      <% @markets.each_with_index do |item, idx| %>
+      <tr>
+        <td><%=idx+1 %></td>
+        <td><a href='/market/details/<%=item.name %>' ><%=item.name%></a></td>
+        <td style="text-align:center">
+          <a href='/manage/track/<%=item.name%>' ><%=(item.check==1 ? "untrack" : "track") %></a>
+        </td>
+        <td style="text-align:center">
+          <a href='/manage/set_pumped/<%=item.name%>' ><%=(item.pumped==1 ? "off pump" : "on pump") %></a>
+        </td>
+        <td style="text-align:center">
+          <a href='/manage/enabled/<%=item.name%>' ><%=(item.enabled==1 ? "disable" : "enable") %></a>
+        </td>
+
+      </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

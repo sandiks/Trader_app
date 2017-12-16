@@ -1,0 +1,252 @@
+<%= partial 'shared/buy_sell_dialog' %>
+<%= partial 'shared/orders_dialog' %>
+<%= partial 'shared/text_price_dialog' %>
+
+<script type="text/javascript">
+
+$(function() {
+    bigTick();
+
+    $('#btn_refresh_tick').click(function() {
+      $.get('/trade/refresh_balance', function(data) {
+          $('#tick').html(data);
+          bind_tick_table_rate_button();
+          //location.reload();
+          
+      });
+    });    
+    $('#btn_refresh_orders').click(function() {
+      if(!window.confirm( 'Are you sure?' )){
+            return
+      }
+
+      $.get('/order/refresh_orders', function(data) {
+          alert(data);
+      });
+    }); 
+    
+    $('.btn_load_orders').click(function() {
+      var market = $(this).data('market');
+      $.get('/order/load_orders/'+market, function(data) {
+          alert(data);
+      });
+    }); 
+
+
+///////// toggle real / simulate
+
+    $('#btn_toggle_real_simulator').click(function(ev) {
+      if(!window.confirm( 'Are you sure?' )){
+            return
+      }
+      $.get("/trade/toggle_real_simalte",
+          function(data){
+            
+           location.reload();
+      });
+    });
+
+    $('.btn_set_pump_level').click(function() {
+      var curr = $(this).data('curr');
+      var level = $(this).data('level');
+
+      $.get('/manage/set_pumped/',{curr:curr,level:level}, function(data) {
+          alert(data);
+      });
+    }); 
+
+  $('.btn_add_to_simul').click(function() {
+    var curr = $(this).data('curr');
+
+    $.get('/trade/add_to_simul/',{curr:curr}, function(data) {
+        alert(data);
+    });
+  }); 
+
+});
+
+function bigTick() {
+    setTimeout(bigTick,30000);
+
+    $.get('/trade/big_tick', function(data) {
+        $('#tick').html(data);
+        bind_tick_table_buy_button();
+        bind_tick_table_sell_button();
+        bind_tick_table_rate_button();
+        bind_tick_table_delete_simul_button();
+    });
+}
+
+function lineTick() {
+    $.get('/trade/line_tick', function(data) {
+        $('#line_tick').html(data);
+    });
+    setTimeout(lineTick,30000);
+}
+function bind_tick_table_rate_button(){
+
+  $('.btn_currency_bid_ask').click(function() {
+      var curr = $(this).data('curr');
+      $.get("/trade/currency_tick/"+curr,
+          function(data) {
+            alert(data);
+      });            
+  });          
+}
+
+function bind_tick_table_buy_button(){
+
+  $('.btn_tick_table_buy').click(function(ev) {
+      var curr = $(this).data('curr');
+      var q = $(this).next().val();
+
+      $.get("/trade/currency_tick/"+curr, function(data) {
+          if(!window.confirm( data )){
+            return
+          }
+          else{
+            $.get("/trade/fast_buy_curr",{curr:curr,quant:q},
+                function(data) {
+                  alert(data);
+            });            
+          }
+      }); //get
+
+  }); //$('.btn_tick_table_buy')         
+}
+
+function bind_tick_table_sell_button(){
+
+  $('.btn_tick_table_sell').click(function() {
+      var curr = $(this).data('curr');
+      var q = $(this).prev().val();
+      
+      $.get("/trade/currency_tick/"+curr, function(data) {
+          if(!window.confirm( data )){
+            return
+          }
+          else{
+            $.get("/trade/fast_sell_curr",{curr:curr,quant:q},
+                function(data) {
+                  alert(data);
+            });            
+          }
+      }); //end get
+
+  }); // end $('.btn_tick_table_sell')   
+
+}
+
+function bind_tick_table_delete_simul_button(){
+
+    $('.btn_tick_table_delete_simul_pair').click(function() {
+      var pair = $(this).data('curr');
+
+      $.get('/trade/delete_from_simul/',{pair:pair}, function(data) {
+          alert(data);
+      });
+    });         
+}
+
+</script>
+
+<div style="margin-left:20px;">
+
+  <button id='btn_refresh_tick' class="btn_style_red"> REFRESH BALANCE</button>
+  <button id='btn_refresh_orders' class="btn_style_red"> REFRESH ORDERS</button>
+  <button class="btn_open_orders btn_style_red" data-market="all">ALL OPENED_ORDERS</button>
+</div>
+
+<div style="margin-left:20px;">
+  <table style="width:80%;">
+  <tr> 
+      <% for item in @balance.sort_by{|x| x[:usdt]} 
+      next if item[:currency]==base_crypto
+         mname = "#{base_crypto}-#{item[:currency]}" %>
+         <td>
+            <button class="btn_buy_sell btn_style_green" data-curr="<%=mname%>" >buy/sell <%=item[:currency] %></button>
+            <br />
+            <button class="btn_hours_price btn_style_blue" data-otype="bid" data-hours="96" data-market="<%=mname%>">96h prices <%=item[:currency]%></button> 
+            <br />
+            <button class="btn_load_orders btn_style_blue" data-market="<%=mname%>">LOAD ORDERS <%=item[:currency] %></button>
+            <br />
+            <button class="btn_hist_orders btn_style_blue" data-market="<%=mname%>">HIST <%=item[:currency] %></button>
+            <br /><a href="https://bittrex.com/Market/Index?MarketName=<%=mname%>" target='blank'>BITTREX <%=item[:currency] %></a>
+         </td>
+      <% end%>
+ </tr>
+ </table>
+</div>
+
+<div id="tick" style="color:green;margin: 20px;20px;0px;0px">
+    tick
+</div>
+
+<div style="margin-left:20px;">
+
+
+  <div style="color:red;">
+    TRADE,  <%= get_trading_mode %>
+  </div>
+  <button id='btn_toggle_real_simulator' class="btn_style_red">REAL/SIMULATE</button>
+   <a href="/trade/set_new_balance">NEW BALANCE</a>
+  
+  <div id="line_tick" style="color:green;margin-bottom: 20px;">      
+  </div>  
+
+  <% @tracked_data.each do |tracked|
+    next unless tracked 
+  %>
+
+    <div style="margin-top:20px;">
+      <div style="color:red;">
+        <%= tracked[:title] %>
+      </div>
+
+      <table class="forumTable" style="width:80%;">
+        <tbody>
+          <tr>
+            <th>market</th>
+            <th>USDT price</th>
+
+            <th>[BUY/SELL]</th>
+            <th>SIMUL</th>
+            <th>PRICE HIST</th>
+            <th>ORDERS HIST</th>
+            <th style='width:25%;'>PUMP LEVEL</th>
+            <th>URL</th>
+          </tr>
+          
+          <% for item in tracked[:pairs].sort_by{|x| -x[:name]} %>
+          <tr>
+            <td><b><%=item[:name]%></b></td>
+
+            <td><%='%0.3f' % item[:usdt_price]%></td>
+    
+            <td><button class="btn_buy_sell btn_style_green" data-curr="<%=item[:name]%>">buy <%=item[:name].sub('BTC-','')%></button> </td>
+
+            <td>
+              <button class="btn_add_to_simul btn_style_green" data-curr="<%=item[:name]%>">simul <%=item[:name].sub('BTC-','') %></button>
+            </td>
+
+            <td><button class="btn_hours_price btn_style_blue" data-otype="bid" data-hours="72" data-market="<%=item[:name] %>">72h <%=item[:name]%></button> </td>
+
+            <td><button class="btn_hist_orders btn_style_blue" data-market="<%=item[:name] %>">hist <%=item[:name] %></button></td>
+    
+            <td style="text-align:center">
+              <button class="btn_set_pump_level btn_style_red" data-level='0' data-curr="<%=item[:name]%>">pump 0</button>
+              <button class="btn_set_pump_level btn_style_red" data-level='1' data-curr="<%=item[:name]%>">pump 1</button>
+              <button class="btn_set_pump_level btn_style_red" data-level='2' data-curr="<%=item[:name]%>">pump 2</button>
+            </td>            
+            <td><a href="https://bittrex.com/Market/Index?MarketName=<%= item[:name] %>" target='blank'>Bittrex</a></td>
+            
+          </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+
+  <% end %>
+
+
+</div>

@@ -1,0 +1,113 @@
+<%= partial 'shared/buy_sell_dialog' %>
+<%= partial 'shared/orders_dialog' %>
+<%= partial 'shared/text_price_dialog' %>
+
+<script type="text/javascript">
+
+$(function() {
+    bigTick();
+
+    $('#btn_refresh_tick').click(function() {
+      $.get('/trade/refresh_balance', function(data) {
+          $('#tick').html(data);
+          bind_tick_table_rate_button();
+          //location.reload();
+          
+      });
+    });    
+    $('#btn_refresh_orders').click(function() {
+      if(!window.confirm( 'Are you sure?' )){
+            return
+      }
+
+      $.get('/order/refresh_orders', function(data) {
+          alert(data);
+      });
+    }); 
+    
+    $('.btn_load_orders').click(function() {
+      var market = $(this).data('market');
+      $.get('/order/load_orders/'+market, function(data) {
+          alert(data);
+      });
+    }); 
+
+
+///////// toggle real / simulate
+
+
+    $('.btn_set_pump_level').click(function() {
+      var curr = $(this).data('curr');
+      var level = $(this).data('level');
+
+      $.get('/manage/set_pumped/',{curr:curr,level:level}, function(data) {
+          alert(data);
+      });
+    }); 
+
+});
+
+function bigTick() {
+    setTimeout(bigTick,30000);
+
+    $.get('/bitfinex/big_tick', function(data) {
+        $('#tick').html(data);
+        bind_tick_table_delete_simul_button();
+    });
+}
+
+function bind_tick_table_delete_simul_button(){
+
+    $('.btn_tick_table_delete_simul_pair').click(function() {
+      var pair = $(this).data('curr');
+
+      $.get('/trade/delete_from_simul/',{pair:pair}, function(data) {
+          alert(data);
+      });
+    });         
+}
+
+</script>
+
+<div style="margin-left:20px;">
+
+  <button id='btn_refresh_tick' class="btn_style_red"> REFRESH BALANCE</button>
+  <button id='btn_refresh_orders' class="btn_style_red"> REFRESH ORDERS</button>
+  <button class="btn_open_orders btn_style_red" data-market="all">ALL OPENED_ORDERS</button>
+</div>
+
+
+
+<div id="tick" style="color:green;margin: 20px;20px;0px;0px">
+    tick
+</div>
+
+<div style="margin-left:20px;">
+
+
+  <div style="color:red;">
+    TRADE,  <%= get_trading_mode %>
+  </div>
+  <button id='btn_toggle_real_simulator' class="btn_style_red">REAL/SIMULATE</button>
+   <a href="/trade/set_new_balance">NEW BALANCE</a>
+  
+  <div id="line_tick" style="color:green;margin-bottom: 20px;">      
+  </div>  
+ 
+<div style="margin-left:20px;">
+  <table style="width:80%;">
+      <% @symbols.each do |item|
+        next unless @ticks[item[:symbol_id]] 
+      %> 
+        <tr> 
+          <td><%= item[:symbol_id]%> <%= item[:name]%></td>
+          <td>
+            <button class="btn_buy_sell btn_style_green" data-curr="<%=item[:name]%>" >buy/sell <%=item[:name] %></button>
+
+            <br />
+          </td>
+        </tr>
+      <% end%>
+ </table>
+</div>
+</div>

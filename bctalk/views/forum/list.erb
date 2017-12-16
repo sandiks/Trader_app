@@ -1,0 +1,35 @@
+<%= partial 'shared/forums' %>
+
+
+<% for forum in @forums %>
+<div style="margin-top:20px;">
+	<div style="color:red;">
+		<%= forum.title %>
+	</div>
+	<table class="forumTable" style="width:70%;">
+		<tbody>
+			<tr>
+				
+				<th>Тема</th>
+				
+				<th style="width:5%">Ответов</th>
+				
+				<th style="width:25%">Дата</th>
+			</tr>
+			<% topics = Threads.filter(siteid:9, fid: forum.fid).reverse_order(:updated).limit(6)%>
+			<% for item in topics %>
+			<tr>
+				<td class="postslisttopic">
+					<a href="<%= ForumHelper.get_real_thread_url(9,item.fid,item.tid) %>"><%= item.title %></a>
+					<%= (item.responses+1)/20 %>
+				</td>
+				<td style="text-align:center"><%= item.responses %></td>
+
+				<td style="text-align:center" class="altCol"><%= item.updated.strftime("%F %k:%M ") %></td>
+
+			</tr>
+			<% end %>
+		</tbody>
+	</table>
+</div>
+<% end %>

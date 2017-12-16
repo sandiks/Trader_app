@@ -1,0 +1,84 @@
+<html>
+   <head>
+      <title><%= @title %></title>
+      
+      <script type="text/javascript" src="/javascripts/jquery.min.js"></script>
+      <script type="text/javascript" src="/javascripts/jquery-ui.min.js"></script>
+      <script type="text/javascript" src="/javascripts/jquery.jqcandlestick.min.js"></script>
+      <link rel="stylesheet" type="text/css" href="/stylesheets/actualforum2.css" media="screen" />
+      <link rel="stylesheet" type="text/css" href="/stylesheets/jquery-ui.css" media="screen" />
+      <link rel="stylesheet" type="text/css" href="/stylesheets/site.css" media="screen" />
+
+   </head>
+   <body>
+
+<script type="text/javascript">
+
+  $(function() {
+      //startRefreshTitle();
+  });
+
+  function startRefreshTitle() {
+      setTimeout(startRefreshTitle,60000);
+      $.get('/price/title_tick', function(data) {
+          document.title = data;
+      });
+  }
+
+</script>
+<%= partial 'forum/forum_threads_dialog' %>
+
+
+   <div style="margin-left: 20px;margin-top: 15px;">    
+      <table style="width:60%;">
+      <tr>
+        <td>
+           <ul>
+            <li> <a href="/market">market</a> </li>
+            <li><a href="/manage">manage</a> </li>
+           </ul>
+        </td>
+       
+        <td>
+          
+           <ul>
+            <li> | <a href="/price/all">price-all</a> </li>
+            <li> | <a href="/price/falling/24">price-falling</a> </li>
+            <li> | <a href="/price/rising/1">price-rising</a> </li>
+           </ul>          
+        </td>
+        <td>
+          
+           <ul>
+            <li> <a href="/trade">trade</a> </li>
+            <li> <a href="/trade/my_trade_pairs">my_trade_pairs</a></li>
+           </ul>                  
+        </td>
+        <td>
+          
+           <ul>
+            <li> <a href="/bitfinex">bitfinex</a> </li>
+           </ul>                  
+        </td>        
+        <td>          
+          
+          <a href="/bctalk/forum/list">forum</a>
+          <button class="btn_show_active_threads">NEWS</button>
+          <a href="/forum/max_reposnses_threads_file">gen FILE</a>
+
+        </td>
+      </tr>
+    </table>   
+   </div>
+
+
+
+   <div id="page-container">
+
+      <div id="content-wrapper-forum">
+         <%= yield %>
+      </div>
+   </div>
+
+</body
+</html>

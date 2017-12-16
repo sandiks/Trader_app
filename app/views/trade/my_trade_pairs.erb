@@ -1,0 +1,66 @@
+<script>
+$(document).ready(function() {
+
+    $('.btn_fast_sell').click(function(ev) {
+        var curr = $(this).data('curr');
+        $('input:hidden[name="curr"]').val(curr);
+        
+        $.get("/manage/get_my_trading_pair_info", {curr:curr},
+            function(data) {
+              $('#pair_info').html(data);
+        });
+    });
+  
+    $('.btn_set_trading_pair_column').click(function() {
+
+      var curr = $('input:hidden[name="curr"]').val();
+      
+      var column = $(this).data('column');
+      var value = $('input:text[name="'+column+'"]').val();
+
+      $.get("/manage/set_trading_pairs", {curr: curr, column:column, value:value},
+          function(data) {
+            alert(data);
+      });
+    });
+
+});  
+
+</script>
+
+<div id="buy_sell_dialog" title="BUY/SELL" style="margin:20px;20px;20px;20px;">
+
+  <div class="table-responsive" style="width: 50%;">
+      
+      <% BalanceUtil.get_balance.sort_by{|k,v| v[:usdt]}.each do |k,v| %>
+
+          <button class="btn_fast_sell" data-curr="<%=k %>">--<%=k %></button>
+      <% end%>
+
+  </div>
+
+  <div id="pair_info"></div>
+
+  <div style="margin-top: 20px;">
+    <input type="hidden" name="curr" value="">
+
+     <div style="margin-top: 15px;">
+     <%= text_field_tag :step %>
+     <button class="btn_set_trading_pair_column"  data-column="step">set step</button>
+     </div>
+     <div style="margin-top: 15px;">
+     
+     <%= text_field_tag :operation_amount %>
+     <button class="btn_set_trading_pair_column"  data-column="operation_amount">operation_amount</button>
+     </div>
+     <div style="margin-top: 15px;">
+     
+     <%= text_field_tag :sell_factor %>
+     <button class="btn_set_trading_pair_column" data-column="sell_factor">sell_factor</button>
+     </div>
+
+
+
+  </div>
+
+</div>

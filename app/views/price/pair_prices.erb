@@ -1,0 +1,24 @@
+<div class="container">
+
+  <%= DateTime.now.new_offset(0/24.0).strftime("%F %k:%M ")%>
+  <a href="<%=@url%>" target='blank'>BITTREX</a>
+  <a href="/bot/update_token_order_history/<%=@token%>">UPDATE</a>
+  <a href="/token/hour_prices/<%=@token%>">detailed prices</a>
+   <br />
+   <br />
+   <table class="forumTable">
+    <tr>
+      <%(0..4).each do |dd|
+         next unless @days_prices[dd] 
+        %>
+        <td>
+          <%= @days_prices[dd][:day]%>
+          <br />
+          <%= @days_prices[dd][:prices].html_safe if @days_prices[dd]%>
+          
+        </td>
+      <% end %>
+    </tr>
+  </table>
+
+</div>

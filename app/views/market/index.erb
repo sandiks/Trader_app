@@ -1,0 +1,28 @@
+<div style="margin-top:20px;">
+  <div style="color:red;">
+    Market
+  </div>
+  <table class="forumTable" style="width:70%;">
+    <tbody>
+      <tr>
+        <th>name</th>
+        <th>BaseVolume</th>
+        <th>open buy ord</th>
+        <th>open sell ord</th>
+        <th>volumes</th>
+      </tr>
+      
+      <% for item in @markets %>
+      <tr>
+        <td><a href='/price/day_prices/<%=item.name %>' ><%=item.name%></a></td>
+        <td><%=item.BaseVolume%></td>
+        <td><%=item.OpenBuyOrders%></td>
+        <td><%=item.OpenSellOrders%></td>
+        <td><%= item.Created.strftime("%F %k:%M ")%></td>
+        <td><%= item.Created.strftime("%F %k:%M ")%></td>
+        
+      </tr>
+      <% end unless @pid%>
+    </tbody>
+  </table>
+</div>

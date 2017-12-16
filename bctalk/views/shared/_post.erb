@@ -1,0 +1,49 @@
+<% 
+item = post
+%>
+
+<table class="msgTable" style="width:90%">
+	<tbody>
+		<tr>
+			<td id="id<%= item.mid %>" class="messageHeader" colspan="2"><img src="/images/message.gif" alt=""><%= @threads.nil? ? @title : @threads[item.tid] %>
+			</td>
+		</tr>
+		<tr style="vertical-align:top">
+			<td style="width:15%" class="msgBody">
+
+				<a href="https://bitcointalk.org/index.php?action=profile;u=<%= item.addeduid %>" class="addedby">
+				<%= item.addedby %> </a>
+				(<%= item.addedrank %>)
+
+				<br/><br/>
+				
+				<font style="color:#888;">Member</font><br>
+				<br /><br />
+				<a href="<%= url_for(:thread, :by_user_page, tid: item.tid, uid: item.addeduid, pg:1) %>" class="addedby">
+				user_posts </a><br/>
+				<span class="smallInfo">Откуда: <br>
+				Сообщений: <br></span>
+				
+			</td>
+			<% 
+			bb = item.body||""
+			 %>
+			<td class="msgBody"><%= bb.html_safe %></td>
+		</tr>
+		<tr>
+			<td colspan="2" class="msgFooter">
+			<%= item.addeddate.strftime("%F %k:%M ") %> 
+
+			<a href="https://bitcointalk.org/index.php?topic=<%= item.tid %>.msg<%= item.mid %>#msg<%= item.mid %>">orig</a>
+			||<a href="/bctalk/thread/<%= item.tid %>/p/1">thread</a>
+			<div style="margin-left:245px;font-size:13px">
+				<button class="btn_mark" data-fid="<%= @fid %>" data-tid="<%= item.tid %>" data-mid="<%= item.mid %>" data-uid="<%= item.addeduid %>">1</button>
+				<button class="btn_mark" data-fid="<%= @fid %>" data-tid="<%= item.tid %>" data-mid="<%= item.mid %>" data-uid="<%= item.addeduid %>">2</button>
+				<button class="btn_mark" data-fid="<%= @fid %>" data-tid="<%= item.tid %>" data-mid="<%= item.mid %>" data-uid="<%= item.addeduid %>">3</button>
+				<button class="btn_mark" data-fid="<%= @fid %>" data-tid="<%= item.tid %>" data-mid="<%= item.mid %>" data-uid="<%= item.addeduid %>">remove</button>
+				<div id="marked_<%= item.mid %>" style="color:red;font-size: 15px;"><%="marked #{ item[:mark]}" %></div>	
+			</div>
+		</td>
+	</tr>
+</tbody>
+</table>

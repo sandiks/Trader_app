@@ -1,0 +1,20 @@
+
+
+<br />
+<%= partial('shared/page_nav', :object => {:count=>@responses, :url=>@url, :page => @page}) if @url  %>
+
+<br />
+<%
+@thread_users.take(30).each do |user| %>
+|| <%= link_to "#{user[1]} (#{user[2]})"  , url_for(:thread, :by_user_page, tid: params[:tid], uid: user[0], pg:1) %>
+
+<% end if @thread_users %>
+
+
+<% @posts.select { |pp| pp.body  }.each_with_index do |item,ind| %>
+      <%= "VIEWED" if @last_viewed && item.addeddate < @last_viewed %>
+
+	<%= ind %>
+	<%= partial 'shared/post', :object => item %>
+<% end %>
+<%= partial('shared/page_nav', :object => {:count=>@responses, :url=>@url, :page => @page}) if @url  %>

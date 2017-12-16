@@ -1,0 +1,67 @@
+<html>
+   <head>
+      <title><%= @title %></title>
+      
+      <script type="text/javascript" src="/bctalk/javascripts/helper.js"></script>
+      <script type="text/javascript" src="/bctalk/javascripts/jquery.min.js"></script>
+      <script type="text/javascript" src="/bctalk/javascripts/jquery-ui.min.js"></script>
+      <link rel="stylesheet" type="text/css" href="/bctalk/stylesheets/layout.css" media="screen" />
+      <link rel="stylesheet" type="text/css" href="/bctalk/stylesheets/actualforum2.css" media="screen" />
+      <link rel="stylesheet" type="text/css" href="/bctalk/stylesheets/jquery-ui.css" media="screen" />
+   </head>
+   <body>
+
+<script>
+$(function(){
+  $(".btn_mark").click(function (event) {
+    event.preventDefault();
+    //var filter = $( "input:text[name='name1']" ).val();
+    fid=$("#forum_tid input:hidden[name='fid']").val();
+    //fid = $(this).attr('data-fid')
+    tid = $(this).attr('data-tid')
+    mid = $(this).attr('data-mid')
+    uid = $(this).attr('data-uid')
+    mark = $(this).text()
+    $.get("/bctalk/stat/mark_post/"+fid+'/'+tid+'/'+mid+'/'+uid+'/'+mark)
+    .done(function( data ) {
+           //alert("marked: " + mark);
+           $("div#marked_"+mid).text("marked:"+mark);
+    });
+
+  });
+  
+});
+</script>    
+<div id="forum_tid">
+ <input type="hidden" name="fid" value="<%= @fid%>">
+ <input type="hidden" name="tid" value="<%= @tid%>">
+</div>
+       <div style="margin-left: 20px;margin-top: 15px;">
+         updated: 
+         <a href="/forum">main</a>
+         <a href="/bctalk/forum/list">all forums</a>
+         <a href="/bctalk/forum/manage/0">manage</a>
+         <br />
+         <br />
+          ##    67 altcoin discussion
+          ##    72 форки  
+          ##    159  Announcements (Altcoins)
+          ##    238 bounty (Altcoins)
+         <br />
+         <a href="/bctalk/bot/check_tracking_threads">check_tracking_threads</a>
+         ||<a href="/bctalk/bot/check_forums">check_forums</a>
+          <br />
+          <a href="/bctalk/stat/users">stat::users</a><br/>
+          <a href="/bctalk/stat/users_threads/159">stat::users_with_threads</a><br/>
+          <a href="/bctalk/stat/threads_with_stars_users/159">stat::threads_with_users</a><br/>
+          <a href="/bctalk/forum/tracking_threads">tracking_threads</a>
+
+       </div>
+      
+      <div id="page-container">
+         <div id="content-wrapper-forum">
+            <%= yield %>
+         </div>
+      </div>
+   </body>
+</html>

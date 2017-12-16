@@ -1,0 +1,28 @@
+<table class="msgTable" style="width:80%;">
+	<tbody>
+		
+		<% @day_posts.each_with_index do |post,ind|  %>
+		  <tr style="vertical-align:top">
+
+			<td class="msgBody" style="width:25%;">
+				<b><%= @dates[ind].strftime("%F %H:%M:%S ") %></b>(<%= post.size %>)<br/>
+				<table class="msgTable">
+					<tr>
+						<td>
+						<% post.group_by{|h| h[:addedby]}.sort_by{|k,v| [-(@uranks[k]||0),-v.size]}.take(300).each do |uname,uposts| %>
+							<% uid = uposts.first[:addeduid] %>
+							<% rank = @uranks[uname] %>
+						
+								<%= link_to uname, url_for(:stat, :user_posts,:id => uid,:date=> @dates[ind]) %>
+					 			(r<%= rank%> ,<%= uposts.size %>)
+					
+						<% end %>
+						</td>
+					</tr>
+				</table>
+			</td>
+			
+		  </tr>
+		<% end %>
+	</tbody>
+</table>

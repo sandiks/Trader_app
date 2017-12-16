@@ -1,0 +1,147 @@
+<script>
+$(function(){
+
+  $('.btn_map_selected_orders').click(function() {
+  
+    //var market = $(this).data('market');
+
+     var table= $('#buy_orders');
+     //checked_orders=$('#buy_orders').find('input[type="checkbox"]:checked');
+     //alert(checked_orders);
+     
+     //$('td input:checkbox',table).prop('checked',this.checked);
+
+     var buy = new Array();
+     var sell = new Array();
+     
+     $.each($("#buy_orders input[type='checkbox']:checked"),
+         function () {
+              buy.push($(this).data('ouuid'));
+     });
+     
+     $.each($("#sell_orders input[type='checkbox']:checked"),
+         function () {
+              sell.push($(this).data('ouuid'));
+     });
+
+       $.ajax({
+          type: 'POST',
+          url: '/order/map_hist_orders',
+          data: { 
+              'pair': '<%=@pair%>',
+              'buy': buy, 
+              'sell': sell, 
+          },
+          success: function(msg){
+              alert(msg);
+          }
+      });    
+  });
+
+  $('.btn_copy_to_bot_trading').click(function() {
+
+     var table= $('#buy_orders');
+     var buy = new Array();
+     
+     $.each($("#buy_orders input[type='checkbox']:checked"),
+         function () {
+              buy.push($(this).data('ouuid'));
+     });
+     
+      $.ajax({
+          type: 'POST',
+          url: '/order/copy_to_bot_trading',
+          data: { 
+              'pair': '<%=@pair%>',
+              'buy': buy, 
+          },
+          success: function(msg){
+              alert(msg);
+          }
+      });    
+  });
+
+});
+</script>
+<div style="margin-left:200px;">
+
+   <a href='/order/mapped_hist_orders/<%=@pair%>' >ALREADY MAPPED <%=@pair%></a>
+</div>
+
+<div style="margin-top:20px;">
+  
+    <table style="width:90%;">
+      <tr>
+        <td>
+
+            LIMIT_BUY
+            <br />
+
+
+          <% @bought.each do |md, day_orders| %>
+            <br />
+            month,day <%= md %>
+            <table id="buy_orders" class="forumTable" style="width:100%;">
+              <tbody>
+                <tr>
+                  <th>TimeStamp</th>
+                  <th>Quantity</th>
+                  <th>Limit</th>
+                  <th>check</th>
+                </tr>
+                
+                <% day_orders.each do |item| %>
+                <tr>
+                  <td><%=item.TimeStamp.strftime("%F %k:%M ")%></td>
+                  <td><%= '%0.4f' % item.Quantity%></td>
+                  <td><%= '%0.8f' %item.Limit%></td>
+                  <td><input type="checkbox" data-ouuid="<%= item.OrderUuid %>"/></td>
+                </tr>
+                <% end%>
+              </tbody>
+            </table>   
+          <% end%>
+
+        </td>
+        
+        <td style="width:10%;" align="center">
+         <button class="btn_map_selected_orders" data-market="<%= @pair %>">MAP</button> 
+         <br />
+         <br />
+         <button class="btn_copy_to_bot_trading" data-market="<%= @pair %>">BOT_TRADING</button> 
+        </td>
+
+        <td>LIMIT_SELL
+            <br />
+
+          <% @selled.each do |md, day_orders| %>
+            <br />
+            month,day <%= md %>
+
+            <table id="sell_orders" class="forumTable" style="width:100%;">
+              <tbody>
+                <tr>
+                  <th>check</th>
+                  <th>TimeStamp</th>
+                  <th>Quantity</th>
+                  <th>Limit</th>
+                </tr>
+                
+                <% for item in day_orders %>
+                <tr>
+                  <td><input type="checkbox" data-ouuid="<%= item.OrderUuid %>"/></td>
+                  <td><%=item.TimeStamp.strftime("%F %k:%M ")%></td>
+                  <td><%= '%0.4f' % item.Quantity%></td>
+                  <td><%= '%0.8f' %item.Limit%></td>
+                </tr>
+                <% end%>
+              </tbody>
+            </table>
+
+          <% end%>
+          
+        </td>
+      </tr>
+    </table>
+
+</div>

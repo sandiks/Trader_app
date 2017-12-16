@@ -1,0 +1,81 @@
+<script>
+$(function(){
+
+	$("#orders_dialog").dialog({
+		autoOpen: false,
+		width: 900,
+		height: 500,
+    buttons: {
+        "Close": function () {
+            $(this).dialog("close")
+        }
+    }		
+	});
+
+	$('.btn_open_orders').click(function() {
+      
+    var market = $(this).data('market');
+
+    $.get("/order/open_orders/"+market,
+        function(data) {
+          $("#buy_orders").html(data);
+
+          $('.btn_close_order').click(function() {
+              var ord_uuid = $(this).data('ord-uuid');
+              $.get("/order/close_open_order/" + ord_uuid,
+                  function(data) {
+                    alert(data);
+              });            
+          });          
+    });
+    
+    $("#orders_dialog").dialog('option', 'title', 'my open orders '+ market);
+		$("#orders_dialog").dialog("open");
+    
+	});
+
+  $('.btn_hist_orders').click(function() {
+      
+    var market = $(this).data('market');
+    $("#buy_orders").html('waiting...'+market);
+
+    $.get("/order/hist_orders/"+market,
+        function(data) {
+          $("#buy_orders").html(data);
+    });
+
+    $("#orders_dialog").dialog('option', 'title', 'history orders '+ market);
+    $("#orders_dialog").dialog("open");
+  });
+
+  $('.btn_hist_ranged_orders').click(function() {
+      
+    var market = $(this).data('market');
+    $("#buy_orders").html('waiting...'+market);
+    
+    $.get("/order/hist_ranged_orders/"+market,
+        function(data) {
+          $("#buy_orders").html(data);
+    });
+    $("#orders_dialog").dialog("open");
+  });
+
+});
+
+
+</script>
+
+<div id="orders_dialog" title="">
+  <div class="row">
+  	<label for="title"></label>
+  </div>
+
+  <div class="row">
+    <div id="buy_orders"></div>
+  </div>
+
+  <div style="margin-top: 20px;">
+    <input type="hidden" name="curr" value="">
+     
+  </div>
+</div>

@@ -1,0 +1,49 @@
+<script>
+$(function(){
+
+	$("#pump_dialog").dialog({
+		autoOpen: false,
+		width: 650,
+		height: 600,
+    buttons: {
+        "Close": function () {
+            $(this).dialog("close")
+        }
+    }		
+	});
+
+  $('.btn_show_tracked_pump').click(function() {
+    
+    var pump_type = $(this).data('type');
+  
+    $("#pump_dialog").dialog( "option", "title", "tracked_pump "+pump_type );
+    $("#pump_dialog #text").html("waiting...");
+    
+    $.get('/pump/check_pump/',{type:pump_type}, function(data) {
+        $("#pump_dialog #pump_text").html(data);
+    });
+ 
+    $("#pump_dialog").dialog("open");
+
+  });  
+
+  $('.btn_orders_volume').click(function() {
+    var pair = $(this).data('market');
+
+    $.get('/orders/orders_volume/',{pair:pair}, function(data) {
+        $("#pump_dialog #pump_text").html(data);
+    });
+  }); 
+
+});
+
+
+</script>
+
+<div id="pump_dialog" title="Basic dialog">
+  <div class="row">
+  	<label for="title"></label>
+  </div>
+
+  <div id="pump_text"></div>
+</div>

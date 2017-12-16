@@ -1,0 +1,15 @@
+<span style="margin-left: 10px">
+<%
+page_size=20
+pc = page_nav_small[:count]/page_size
+pc+=1 if  page_nav_small[:count]%page_size !=0
+pp=[]
+pp = [1]  if pc ==1
+pp = [pc-1 , pc]  if pc >1
+%>
+
+<% for @p in pp %>
+<a class="pages" href="<%= page_nav_small[:url] %>/<%= @p %>"><%= @p %></a>
+<% end %>
+
+</span>

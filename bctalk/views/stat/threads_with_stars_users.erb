@@ -1,0 +1,27 @@
+
+
+date <b>from: <%= @from.strftime("%F %H:%M")%></b>
+<br />
+<% 
+idx=0
+
+@posts.group_by{|h| h[:tid]}.sort_by{|k,pp| -pp.group_by{|pp| pp[:addedby]}.size}.take(25).each do |tid, th_posts| %>
+<table class="msgTable" style="width:60%;">
+	<tbody>
+		
+		<tr style="vertical-align:top">
+			<td class="msgBody">
+				<b> [<%=(idx+=1) %>] </b>
+				<%= link_to @threads[tid]||tid, url_for(:stat, :filtered_thread_posts,tid:tid,h:@hours) %>
+				<br/>
+				<% th_posts.group_by{|pp| pp[:addedby]}.sort_by{|uname,pp| -(@uranks[uname]||0)}.each  do |uname,uposts|%>
+					<b><%= uname%></b> (<%= @uranks[uname] %>)
+					| <%= uposts.map { |po|  "#{po[:addeddate].strftime("%k:%M")}"+ (po[:mark].to_i>0 ? " mark:#{po[:mark]}" :"") }.join(",")  %>
+					<br />
+				<% end %>
+			</td>
+		</tr>
+		
+	</tbody>
+</table>
+<% end %>

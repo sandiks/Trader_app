@@ -1,0 +1,32 @@
+
+.btn_style_blue
+{
+    background-color: #aed0ea; /* BLUE */
+    
+    padding: 8px;
+    border: none;
+    margin: 3px;
+    text-align: center;
+    display: inline-block;
+    font-size: 15px;
+}  
+.btn_fast_sell, .btn_style_red{
+    background-color: #f16e6e; /* PINK */
+    margin: 3px;
+    padding: 8px;
+    border: none;
+    text-align: center;
+    display: inline-block;
+    font-size: 15px;
+} 
+.btn_fast_buy, .btn_style_green{
+    background-color: #70e48f; /* GREEN*/
+
+    padding: 8px;
+    margin: 3px;
+    
+    border: none;
+    text-align: center;
+    display: inline-block;
+    font-size: 15px;
+} 

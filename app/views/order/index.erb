@@ -1,0 +1,22 @@
+<div style="margin-top:20px;">
+  <div style="color:red;">
+    Tracked 
+  </div>
+  <table class="forumTable" style="width:50%;">
+    <tbody>
+      <tr>
+        <th>name</th>
+        <th>map</th>
+        <th>history</th>
+      </tr>
+      
+      <% for item in @tracked_pairs %>
+      <tr>
+        <td><a href='/order/hist_orders/<%=item.name %>' ><%=item.name%></a></td>
+        <td><a href='/order/map_hist_orders/<%=item.name %>' >MAP <%=item.name%></a></td>
+        <td>history</td>
+      </tr>
+      <% end%>
+    </tbody>
+  </table>
+</div>

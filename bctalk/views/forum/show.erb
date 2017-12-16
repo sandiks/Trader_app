@@ -1,0 +1,53 @@
+<%= partial 'shared/forums' %>
+
+<%
+def calc_page(resps)
+	pc = resps/30
+	pc+=1 if  resps%30 !=0
+end
+%>
+
+<b><%= @title %></b>
+<br/>
+<table class="forumTable" style="width:90%">
+	<tbody>
+		<tr>
+			<th style="width:2%"></th>
+			<th style="width:2%">pages</th>
+			<th>Тема</th>
+			<th>URL</th>
+			<th style="width:5%">views</th>
+			<th style="width:5%">resps</th>
+			<th style="width:15%">date</th>
+			<th>load</th>
+			<th>track</th>
+			<th style="width:15%">last_viewed</th>
+		</tr>
+		<% @topics.each_with_index do |item,ind| %>
+		<tr>
+			<td style="text-align:center"><%= ind+1 %></td>
+			<td style="text-align:center"><%= ForumHelper.last_thread_page(item.responses+1,20) %></td>
+
+			<td class="postslisttopic"><%= item.title.strip %>
+				<a href='<%= "/bctalk/thread/#{item.tid}/p/1" %>'></a> 
+				
+				 <%= item.descr %>
+			</td>
+			<td><a href='<%= ForumHelper.get_real_thread_url(9,item.fid,item.tid,item.responses/20+1) %>' target="blank">[orig]</a></td>
+			<td style="text-align:right"><%= item.viewers %></td>
+			<td style="text-align:right"><%= item.responses %></td>
+			<td style="text-align:left" class="altCol"><%= item.updated.strftime("%F %k:%M ") %></td>
+			<td style="text-align:center">
+				<a href='<%= "/bctalk/bot/load_thread/#{item.tid}/24" %>'>load</a>
+			</td>			
+
+			<td style="text-align:center">
+				<a href='<%= (item.bot_tracked==1 ? "/bctalk/thread/untrack/#{item.tid}" : "/bctalk/thread/track/#{item.tid}") %>'>
+				<%=(item.bot_tracked==1 ? "untrack" : "track") %></a>
+			</td>
+			<td style="text-align:left" class="altCol"><%= item.last_viewed.strftime("%F %k:%M ") if item.last_viewed %></td>
+
+		</tr>
+		<% end %>
+	</tbody>
+</table>

@@ -1,0 +1,27 @@
+
+
+<b><%= @title.html_safe %></b>
+<br/>
+<table class="forumTable" style="width:100%">
+	<tbody>
+		<tr>
+			<th>Тема</th>
+			<th style="width:5%">resps</th>
+			<th>SHOW</th>
+			<th>pages</th>
+			<th>url</th>
+		</tr>
+		<% @threads.each_with_index do |item,ind| %>
+		<tr>
+
+			<td><%= item[:title] %></td>		
+			<td><%= item[:responses] %></td>
+			<td><button class="btn_show_posts" data-thread="<%= item[:tid]%>">posts</button></td>
+			<td><%= item[:pages] %></td>
+			<td>
+				<a href='<%= item[:url] %>' target='blank' >[url]</a>
+			</td>		
+		</tr>
+		<% end %>
+	</tbody>
+</table>

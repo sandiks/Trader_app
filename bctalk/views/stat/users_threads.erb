@@ -1,0 +1,28 @@
+
+
+date <b>from: <%= @from.strftime("%F %H:%M")%></b>
+<br />
+<% 
+idx=0
+@posts.group_by{|h| h[:addedby]}.sort_by{|k,v| -(@uranks[k]||0)}.select{|k,v| (@uranks[k]||0)>2}.each do |user,uposts| %>
+
+<table class="msgTable">
+	<tbody>
+		
+		<tr style="vertical-align:top">
+			<td style="width:15%" class="msgBody">
+				[<%=(idx+=1) %>] <%= link_to user, url(:stat, :user_posts, id: uposts.first[:addeduid], date: @from.to_date) %>
+				(<%=@uranks[user] %>) posts:<%= uposts.size %>
+			</td>
+			<td class="msgBody">
+				<% uposts.group_by{|pp| pp[:tid]}.each  do |tid,vv|%>
+					<%= @threads[tid]%>|
+					<%= vv.map { |po|  po[:addeddate].strftime("%k:%M")}.join(",")  %>
+					<br />
+				<% end %>
+			</td>
+		</tr>
+		
+	</tbody>
+</table>
+<% end %>

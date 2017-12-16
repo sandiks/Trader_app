@@ -1,0 +1,118 @@
+<script>
+$(document).ready(function() {
+    $("select[name='market']").change(function(){
+        //alert($(this).val());
+        $.ajax({
+          type: 'GET',
+          dataType: 'json',
+          url: '/market/last_price_grouped_by_hour/'+$(this).val(),
+          success: function(data) {   
+            //alert(data.length)
+            //$('#result').html(format_data(data));
+            show_columns(format_data_for_chart(data))
+            //show_columns(test_data())
+          }
+
+        });
+    });
+});  
+function format_data(json)
+{
+    res=""
+    for (var i = 0; i < json.length; i++) {
+      el = json[i]
+      res+= "dd:hh:mm "+el.dd +":" + el.hh +":" + el.mm + " bid: "+el.bid + "<br />";
+      //time += 1 * 60000; // Add 30 minutes
+    }
+    return res;
+}
+function show_columns(data)
+{
+        $('#example-3').jqCandlestick({
+          data: data,
+          theme: 'light',
+          series: [{
+            type: 'column',
+          }],
+        });
+}
+
+function format_data_for_chart(json)
+{
+    var data = [];      
+    var dd = new Date();
+    dd.setSeconds(0);
+    var time = dd.valueOf();
+            
+    for (var i = 0; i < json.length; i++) {
+      el = json[i]
+      dd.setDate(el.dd);
+      dd.setHours(el.hh);
+      dd.setMinutes(el.mm);
+      data.push([dd.valueOf(), el.bid]);
+      //time += 60; // Add 30 minutes
+    }
+    return data;
+}
+function test_data()
+{
+       var data = [];
+      
+      var time = new Date('Dec 1, 2013 12:00').valueOf();
+      
+      var h = Math.floor(Math.random() * 100);
+      var l = h - Math.floor(Math.random() * 20);
+      var o = h - Math.floor(Math.random() * (h - l));
+      var c = h - Math.floor(Math.random() * (h - l));
+
+      var v = Math.floor(Math.random() * 1000);
+      
+      for (var i = 0; i < 30; i++) {
+        data.push([time, o, h, l, c, v]);
+        h += Math.floor(Math.random() * 10 - 5);
+        l = h - Math.floor(Math.random() * 20);
+        o = h - Math.floor(Math.random() * (h - l));
+        c = h - Math.floor(Math.random() * (h - l));
+        v += Math.floor(Math.random() * 100 - 50);
+        time += 20 * 60000; // Add 30 minutes
+      }
+      return data;
+}
+</script>
+
+<style type="text/css">      
+      .jqcandlestick-container {
+        width: 940px;
+        height: 480px;
+      }
+</style>
+
+<%
+def print(str); '%0.4f' % str; end
+%>
+<div class="container">
+  
+  <div class="row">
+    <div class="col-md-8">
+      <!--    Striped Rows Table  -->
+      <div class="panel panel-default">
+        <div class="panel-heading">
+
+          Текущие токены
+        </div>
+        <div class="panel-body">
+          <div class="table-responsive">
+            <%= select_tag(:market, :options => Tprofiles.map { |tt| tt.name } ) %>
+            
+            <div id="result"></div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+   
+  </div>
+
+ <div id="example-3"></div>
+
+</div>

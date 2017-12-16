@@ -1,0 +1,388 @@
+html, body {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	font: 77% Arial, Tahoma, Verdana, sans-serif;
+/*	color: #3a4b56; */
+	color: #222222;
+	background-color: #FFF;
+}
+
+a, a:visited {
+	color: #205CA2;
+}
+
+/*a:visited {
+	color: #76868F;
+}*/
+
+/*a:hover {
+	color: red;
+}*/
+
+a img {
+	border: 0 none;
+}
+
+button, input, select {
+	font-size: 12px;
+	color: #222;
+}
+
+@-moz-document url-prefix() {
+button, input[type="button"], input[type="submit"], input[type="cancel"] {
+    height:auto !important;
+}
+}
+
+input[type="checkbox"], input[type="radio"] {
+    border:none !important;
+}
+
+textarea {
+	color: #000;
+}
+
+input.inactive {
+	color: #999;
+}
+
+input.active {
+	color: #000;
+}
+
+.header {
+	font-size: 110%;
+
+}
+
+hr {
+	display: none;
+}
+
+#page-container {
+	min-width: 940px;
+}
+
+/* header */
+
+#header {
+	background: #6593C0 url(top-bg00.gif) left top repeat-x;
+}
+
+.header-wrap {
+	background: url(top-shad.gif) left bottom repeat-x;
+	position: relative;
+	min-height: 67px;
+	font-size: 11px;
+	z-index: 100;
+	padding-top: 9px;
+	border-bottom: 1px solid #FFF;
+}
+
+#title {
+	position: absolute;
+	left: 16px;
+	top: 15px;
+}
+
+#title a {
+	display: block;
+	width: 184px;
+	height: 27px;
+	background: url(logo0000.gif) no-repeat;
+	overflow: hidden;
+	text-indent: -100px;
+}
+
+#top-advert {
+	position: relative;
+	margin: 0 0 42px 278px;
+/*	border: 1px solid #5C8DBD;
+	background: #e7e4e1; 
+	width: 468px;
+	height: 60px;        
+	overflow: hidden;    */
+}
+
+/* login */
+
+#login-link, #ismember {
+	position: absolute;
+	top: 14px;
+	right: 14px;
+	padding-left: 24px;
+	background: url(http://www.sql.ru/css/images/icons/key.gif) left center no-repeat;
+	color: #FFF;
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+#login-link:hover {
+	text-decoration: none;
+}
+
+#ismember {
+	padding:0;
+	background:none;
+}
+
+#ismember #logout-link {
+	background: url(http://www.sql.ru/css/images/icons/key.gif) left center no-repeat;
+	width:18px;
+	height:12px;
+	float:left;
+	margin-right:5px;
+}
+
+#ismember a {
+	color:#fff;
+}
+
+#login {
+	position: absolute;
+	right: 14px;
+	top: -140px;
+	width: 193px;
+	background: url(http://www.sql.ru/css/images/login-win-shadow.png) center bottom repeat-x;
+	border-bottom: none;
+	z-index: 40;
+}
+
+#login form {
+	margin: 0 0 3px 0;
+	padding: 16px 12px 0 12px;
+	border: 1px solid #E1E1EB;
+	background: #F4F5FA;
+	overflow: hidden;
+}
+
+#login label {
+	float: left;
+	width: 43px;
+	line-height: 24px;
+}
+
+#login .username,
+#login .password {
+	clear: left;
+	padding-bottom: 4px;
+}
+
+#login .username input,
+#login .password input {
+	width: 118px;
+	height: 14px;
+	padding: 2px;
+	background: #FFF;
+	border: 1px solid #7394B5;
+}
+
+#login .close {
+	position: absolute;
+	right: 3px;
+	top: 2px;
+	width: 11px;
+	height: 11px;
+	text-indent: 20px;
+	overflow: hidden;
+	background: url(http://www.sql.ru/css/images/icons/close.gif) no-repeat;
+}
+
+#login .submit {
+	float: right;
+}
+
+#login .links {
+	float: left;
+	width: 100px;
+	margin: 10px 0 0 0;
+}
+
+/* search */
+
+#top-search {
+	position: absolute;
+	right: 14px;
+	bottom: 10px;
+	margin: 0;
+	padding-left: 19px;
+	background: url(http://www.sql.ru/css/images/icons/search.gif) left center no-repeat;
+	z-index: 30;
+}
+
+#search-query {
+	width: 120px;
+}
+
+/* top menu */
+
+#top-menu {
+	position: absolute;
+	left: 16px;
+	bottom: 0;
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	height: 32px;
+	width: 900px;
+}
+
+#top-menu li {
+	float: left;
+	height: 32px;
+	line-height: 32px;
+	margin: 0;
+	padding: 0;
+	background: #3C538F url(top-menu.gif) 0 0 repeat-x;
+}
+
+#top-menu a:hover {
+	background: #3C538F url(top-menu.gif) 0 -32px repeat-x;
+	color: #FFF;
+}
+
+#top-menu a {
+	float: left;
+	height: 32px;
+	padding: 0 20px 0 11px;
+	color: #E7E4E1;
+	text-decoration: none;
+}
+
+#top-menu li.selected a {
+	background: #FFF url(top-menv.gif) 0 0 repeat-x !important;
+	color: #404A64 !important;
+}
+
+/* middle layout */
+
+#middle {
+	margin-top: 12px;
+	/*background: url(images/side-bg-left.gif) left top repeat-y;*/
+}
+
+#middle.column-1 {
+	background: none;
+}
+
+.column-3 #middle-wrap {
+	/*background: url(images/side-bg-right.gif) right top repeat-y;*/
+}
+
+#side-1 {
+	float: left;
+	width: 215px;
+    border-right:1px solid #d1d3dd;
+    padding-right:15px;
+    margin-left:15px;
+}
+
+#side-1 .wrap {
+	padding: 8px 14px;
+}
+
+#side-2 {
+	float: right;
+	width: 300px;
+    border-left:1px solid #d1d3dd;
+    padding-left:15px;
+    margin-right:15px;
+}
+
+#side-2 .wrap {
+	padding: 8px 14px;
+}
+
+#content-wrapper {
+	width: 100%;
+	float: left;
+}
+
+.column-1 #content-section {
+	margin: 0 18px 0 24px;
+}
+
+.column-2 #content-section {
+	margin: 0 12px 0 270px; 
+}
+
+.column-3 #content-section {
+	margin: 0 345px 0 260px;
+}
+
+#content-section h1,
+#content-section h2 {
+	margin: 0 0 10px 0;
+	font-size: 140%;
+	font-weight: normal;
+	color: #333;
+}
+
+#bottom-fade {
+	clear: both;
+	/*background: #FFF url(images/side-bg-bottom-left.gif) left top no-repeat;*/
+}
+
+#bottom-fade .wrap {
+	/*height: 43px;*/
+}
+
+.column-3 #bottom-fade .wrap {
+	/*background: url(images/side-bg-bottom-right.gif) right top no-repeat;*/
+}
+
+.column-1 #bottom-fade {
+	background: none;
+}
+
+#footer {
+	margin: 0 14px;
+	border-top: 1px solid #D2D3DD;
+	color: #4B5D67;
+	height: 61px;
+    clear:both;
+}
+
+#content-wrapper-forum #footer {
+    margin-top:10px;
+}
+
+#footer .copyright {
+	float: left;
+	width: 310px;
+	padding-top: 33px;
+}
+
+#footer .more {
+	float: left;
+	padding-top: 33px;
+}
+
+#footer .counters {
+	float: right;
+	padding-top: 15px;
+}
+
+#footer .counters img {
+	width: 88px;
+	height: 31px;
+	margin: 0 5px;
+}
+
+.hottopics table {
+    width:95%;
+    margin:20px auto;
+    border:0;
+    border-collapse:collapse;
+}
+
+    .hottopics tr:hover {
+        background-color:#eee;
+    }
+
+        .hottopics td {
+            padding:1px 3px;
+        }

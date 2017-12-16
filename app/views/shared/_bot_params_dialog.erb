@@ -1,0 +1,102 @@
+<script>
+$(function(){
+
+	$("#buy_sell_dialog").dialog({
+		autoOpen: false,
+		width: 600,
+		height: 500,
+    buttons: {
+        "Close": function () {
+            $(this).dialog("close")
+        }
+    }		
+	});
+
+	$('.btn_bot_params').click(function() {
+  
+    var curr = $(this).data('curr');
+    $("#buy_sell_dialog").dialog( "option", "title", 'BUY/SELL '+curr );
+    $('#buy_sell_dialog input:hidden[name="curr"]').val(curr);
+    $('#buy_sell_dialog input:text[name="q"]').val(0);
+
+    $("#bid_ask").html('');
+
+    $.get("/trade/buy_sell_info/"+curr,
+        function(data) {
+          //$('#buy_sell_dialog input:text[name="rate"]').val($(this).text()) 
+          
+          $("#balance_info").html(data.balance);
+          $('#buy_sell_dialog input:text[name="q"]').val( data.operation_amount );
+          $("#bid").html('BID ' + Number(data.bid).toFixed(8)); 
+          $("#ask").html('ASK ' + Number(data.ask).toFixed(8)); 
+          $('#buy_sell_dialog input:text[name="rate"]').val(Number(data.ask).toFixed(8));
+          $("#orders_history").html(data.orders_history); 
+
+      
+    });
+		$("#buy_sell_dialog").dialog("open");
+	});
+
+
+  $('#btn_buy_curr').click(function() {
+
+    var curr = $('#buy_sell_dialog input:hidden[name="curr"]').val();
+    var q = $('#buy_sell_dialog input:text[name="q"]').val();
+    var rate = $('#buy_sell_dialog input:text[name="rate"]').val();
+
+    $.get("/trade/buy_curr", {curr: curr, q:q, r:rate},
+        function(data) {
+          alert(data);
+    });
+  });
+
+  $('#btn_sell_curr').click(function() {
+
+    var curr = $('#buy_sell_dialog input:hidden[name="curr"]').val();
+    var q = $('#buy_sell_dialog input:text[name="q"]').val();
+    var rate = $('#buy_sell_dialog input:text[name="rate"]').val();
+
+    $.get("/trade/sell_curr", {curr: curr, q:q, r:rate},
+        function(data) {
+          alert(data);
+    });
+  });
+ 
+
+});
+function bind_orders(){
+
+  $('.btn_close_order').click(function() {
+      var ord_uuid = $(this).data('ord-uuid');
+      $.get("/order/close_open_order/" + ord_uuid,
+          function(data) {
+            alert(data);
+      });            
+  });          
+
+}
+
+</script>
+
+<div id="buy_sell_dialog" title="BUY/SELL">
+  <div class="row">
+  	<label for="title"></label>
+  </div>
+
+  <div style="margin-top: 20px;">
+    <input type="hidden" name="curr" value="">
+     q<%= text_field_tag :q %>
+     rate<%= text_field_tag :rate %>
+     
+  </div>
+  <div style="margin-top: 20px;">
+     <button id="btn_buy_curr" class='btn_style_red' onclick="return confirm('BUY?');" >BUY</button>
+     <button id="btn_sell_curr" class='btn_style_red' onclick="return confirm('SELL?');">SELL</button>  
+  </div>  
+  
+  <div id="bid" style="margin-top: 5px;font-weight: bold"></div>
+  <div id="ask" style="margin-top: 5px;font-weight: bold"></div>
+  <div id="balance_info" style="margin-top: 20px;"></div>
+  <div id="orders_history" style="margin-top: 20px;"></div>
+
+</div>

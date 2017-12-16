@@ -1,0 +1,58 @@
+<div class="container">
+
+  <div class="row">
+    <div class="col-md-8">
+      <!--    Striped Rows Table  -->
+      <div class="panel panel-default">
+        <div class="panel-heading">
+            
+          Market summaries  <a href="/market/update_market_summaries">[update]</a>
+        </div>
+        <div class="panel-body">
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>name</th>
+                  <th>BaseVolume</th>
+                  <th>open buy ord</th>
+                  <th>open sell ord</th>
+                  <th>last</th>
+                  <th>history</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><th> tracked </th></tr>                
+
+                <% for item in @tracked %>
+                <tr>
+                  <td><a href='/token/detailed_volumes/<%=item.name.sub("BTC-","")%>' target='_blank'><%=item.name%></a></td>
+                  <td><%=item.BaseVolume%></td>
+                  <td><%=item.OpenBuyOrders%></td>
+                  <td><%=item.OpenSellOrders%></td>
+                  <td><%= '%02.8f' % item.Last%></td>
+                  <td><%= @prices[item.name].html_safe%></td>
+                </tr>
+                <% end %>
+                <tr><th> others </th></tr>
+
+                <% for item in @markets %>
+                <tr>
+                  <td><a href='/token/detailed_volumes/<%=item.name.sub("BTC-","")%>' target='_blank'><%=item.name%></a></td>
+                  <td><%=item.BaseVolume%></td>
+                  <td><%=item.OpenBuyOrders%></td>
+                  <td><%=item.OpenSellOrders%></td>
+                  <td><%= '%02.8f' % item.Last%></td>
+                </tr>
+                <% end unless @pid%>
+                
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+ 
+</div>

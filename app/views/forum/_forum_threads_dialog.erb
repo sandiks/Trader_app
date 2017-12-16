@@ -1,0 +1,96 @@
+<script>
+$(function(){
+
+	$("#threads_dialog").dialog({
+		autoOpen: false,
+		width: 750,
+		height: 600,
+    buttons: {
+        "Close": function () {
+            $(this).dialog("close")
+        }
+    }		
+	});
+
+  $("#posts_dialog").dialog({
+    autoOpen: false,
+    width: 850,
+    height: 500,
+    buttons: {
+        "Close": function () {
+            $(this).dialog("close")
+        }
+    }   
+  });
+
+	$('.btn_show_active_threads').click(function() {
+      
+    $("#posts").html("waiting...active_threads");
+
+    $.get("/forum/max_reposnses_threads",
+        function(data) {
+          $("#threads").html(data);
+          bind_buttons();
+    });
+		$("#threads_dialog").dialog("open");
+    
+	});
+
+  $('.btn_load_forum').click(function() {
+    
+    var fid = $(this).data('forum');
+    $("#posts").html("waiting...load_forum: "+fid);
+
+    $.get("/forum/save_forum_thread_to_stat/"+fid,
+        function(data) {
+          //$("#threads").html(data);
+          alert(data);
+    });
+    $("#threads_dialog").dialog("open");
+  });
+
+  function bind_buttons(){
+
+    $('.btn_show_posts').click(function(e) {
+      //e.preventDefault();
+      var tid = $(this).data('thread');
+      $("#posts").html("waiting..."+tid);
+
+      //alert(tid);
+      $.get("/forum/load_posts/"+tid,
+          function(data) {
+            $("#posts").html(data);
+            //alert(data);
+      });
+     
+      $("#posts_dialog").dialog("open");
+    });
+  }
+
+});
+
+
+</script>
+
+<div id="threads_dialog" title='active threads' >
+    <div class="row">
+    	<label for="title"></label>
+    </div>
+    <button class="btn_load_forum" data-forum="159">ANN ALTCOIN(159)</button>
+    <button class="btn_load_forum" data-forum="240">ANN TOKEN(240)</button>
+    <button class="btn_load_forum" data-forum="1">bitcoin discussion(1)</button>
+    <button class="btn_load_forum" data-forum="67">altcoin discussion(67)</button>
+    <button class="btn_load_forum" data-forum="8">Trading discussion(67)</button>
+    <br />
+  
+  <div id="threads"></div>
+
+</div>
+<div id="posts_dialog" title="show posts">
+    <div class="row">
+      <label for="title"></label>
+    </div>
+  
+  <div id="posts"></div>
+
+</div>

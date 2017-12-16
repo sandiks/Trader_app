@@ -1,0 +1,27 @@
+<% 
+
+pc = page_nav[:count]/20
+pc+=1 if  page_nav[:count]%20 !=0
+
+curr= page_nav[:page]
+
+pp=[1, '..', curr-2, curr-1, curr, curr+1, curr+2, '..', pc].select{|x| x.to_i>0  and x.to_i <= pc}.uniq!
+pp=[1, '..', curr-2, curr-1, curr, curr+1, curr+2, '..', pc] if pp.nil?
+%>
+
+
+<table class="sort_options" style="font-weight: bold;">
+    <tbody>
+        <tr>
+            <td align="left">
+                <% for pg in pp %>
+	                <% if pg !=curr %>
+	                	<a href="<%= page_nav[:url] %>/p/<%=pg%>"><%=pg%></a>
+	                <% else %>
+	                    <%= "[#{pg}]"%>
+	                <% end %>    
+                <% end %>    
+            </td>
+        </tr>
+    </tbody>
+</table>

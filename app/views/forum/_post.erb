@@ -1,0 +1,31 @@
+<% 
+item = post
+%>
+
+<table class="msgTable" style="width:100%">
+	<tbody>
+		<tr>
+			<td id="id<%= item.mid %>" class="messageHeader" colspan="2"><img src="/images/message.gif" alt=""><%= @threads.nil? ? @title : @threads[item.tid] %>
+			</td>
+		</tr>
+		<tr style="vertical-align:top">
+			<td style="width:15%" class="msgBody">
+
+				<a href="https://bitcointalk.org/index.php?action=profile;u=<%= item.addeduid %>" class="addedby">
+				<%= item.addedby %> </a>
+				(<%= @uranks[item.addedby] %>)
+
+			</td>
+			<% bb = item.body||""%>
+			<td class="msgBody"><%= bb.html_safe %></td>
+		</tr>
+		<tr>
+			<td colspan="2" class="msgFooter">
+			<%= item.addeddate.strftime("%F %k:%M ") %> 
+			<a href="https://bitcointalk.org/index.php?topic=<%= item.tid %>.msg<%= item.mid %>#msg<%= item.mid %>">orig</a>
+			||<a href="/bctalk/thread/<%= item.tid %>/p/1">thread</a>
+			
+		</td>
+	</tr>
+</tbody>
+</table>

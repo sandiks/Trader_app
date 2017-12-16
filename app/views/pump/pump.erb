@@ -1,0 +1,25 @@
+<%= partial 'shared/buy_sell_dialog' %>
+<%= partial 'shared/price_dialog' %>
+
+<div class="container">
+
+  <a href="<%=@url%>" target='blank'>BITTREX</a>
+  <a href='<%= (@enable==1 ? "/manage/disable/#{@market}" : "/manage/enable/#{@market}") %>'>
+          <%=(@enable==1 ? "disable" : "enable") %></a>
+
+  <br/>
+  <button class="btn_buy_sell" data-curr="<%=@market.sub('BTC-','')%>">BUY-SELL <%=@market.sub('BTC-','') %></button>
+  <br/>
+  <button class="btn_3hours_price" data-market="<%=@market %>">last 3h prices <%=@market%></button> 
+
+  <br/>
+
+  <div class="row">
+    <div class="col-md-8">
+      <!--    Striped Rows Table  -->
+      <%= @text.html_safe%>
+    </div>
+   
+  </div>
+ 
+</div>

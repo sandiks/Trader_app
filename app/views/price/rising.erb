@@ -1,0 +1,86 @@
+<%= partial 'shared/text_price_dialog' %>
+<%= partial 'shared/pump_dialog' %>
+
+
+<script>
+$(function(){
+
+  $('.btn_set_pump_level').click(function() {
+    var curr = $(this).data('curr');
+    var level = $(this).data('level');
+
+    $.get('/manage/set_pumped/',{curr:curr,level:level}, function(data) {
+        alert(data);
+    });
+  }); 
+
+  $('.btn_add_to_simul').click(function() {
+    var curr = $(this).data('curr');
+
+    $.get('/trade/add_to_simul/',{curr:curr}, function(data) {
+        alert(data);
+    });
+  }); 
+
+}); 
+
+</script>
+
+<div style="margin:20px;20px;">
+  <div style="color:green;">
+     <% [0.2,0.25,0.3,0.4,0.5].each do |hh| %>
+        <a href="/price/rising/<%=hh%>">rising <%=hh*60%></a> </li>
+     <%end%>
+  </div>
+
+  <div style="color:red;">
+    Rising 
+  </div>
+  <div style="color:green;margin-bottom:20px;">
+    List:
+    <br/>
+     <%= @rising.map{|tt| " #{tt[:name]}"}.join(' ') %>
+  </div>  
+  <table class="forumTable" style="width:80%;">
+
+    <tbody>
+      <tr>
+        <th style="width:10%;">name</th>
+        <th style="width:5%;">factor</th>
+        <th style="width:30%;">history</th>
+        <th style="width:10%;">PRICE</th>
+        <th style="width:10%;">PUMP</th>
+        <th style="width:10%;">SIMUL</th>
+        <th style="width:5%;">bittrex</th>
+      </tr>
+      
+      <% for item in @rising.sort_by{|x| -x[:pumped]} %>
+
+      <tr>
+        <% mname = item[:name]  %>
+
+        <td>
+          <a href="<%= "/pump/show_pump/#{mname}" %>"><%=item[:title]%></a>
+        </td>
+        <td ><%='%0.4f' % item[:price_factor]%></td>
+        <td><%= item[:hist_volumes].html_safe if item[:hist_volumes] %></td>
+        <td>
+          <button class="btn_hours_price btn_style_blue" data-hours="24" data-market="<%=mname%>">24h <%=mname%></button> 
+        </td>
+        <td style="text-align:center">
+          <button class="btn_set_pump_level btn_style_red" data-level='0' data-curr="<%=item[:name]%>">pump 0</button>
+          <button class="btn_set_pump_level btn_style_red" data-level='1' data-curr="<%=item[:name]%>">pump 1</button>
+          <button class="btn_set_pump_level btn_style_red" data-level='2' data-curr="<%=item[:name]%>">pump 2</button>
+        </td>
+        <td>
+          <button class="btn_add_to_simul btn_style_green" data-curr="<%=item[:name]%>">to SIMUL <%=item[:name] %></button>
+        </td>
+        <td ><a href="https://bittrex.com/Market/Index?MarketName=<%= mname %>">BITTREX</a></td>
+
+      </tr>
+
+      <% end%>
+    </tbody>
+
+  </table>
+</div>
