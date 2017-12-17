@@ -110,13 +110,11 @@ class PriceAnalz
 
     p "--find_tokens_with_rising_price --hours_back:#{hours_back}"
 
-    markets = DB[:tprofiles].filter(pid:get_profile, group:GROUP, pumped:1).select_map([:name,:pumped])
+    markets = DB[:tprofiles].filter(pid:get_profile, group:GROUP, enabled:1).select_map([:name,:pumped])
     market_names = markets.map { |e| e[0]  }
 
-    now = date_now(0)
     from = date_now(hours_back)
     ind = 0
-
     rising_out=[]
 
     all_data = get_crypto_rates(from,  market_names)
@@ -135,27 +133,22 @@ class PriceAnalz
       next if last_bid==0
       
       prices = data.map { |dd| (dd[:bid]/last_bid*1000) }
-      minp = prices.min rescue p(data.map { |e| e[:bid]  }) 
+      minp = prices.min 
       maxp = prices.max
-      next if maxp-minp ==0 
 
       ### calculate factor
       ff=nil
       
-      first_min = prices.first
-      last_max = prices.last(2).max
+      first_min = prices.take(7).first(2).min
+      last_max  = prices.take(7).last(2).max
+      
       ff=(first_min-last_max)/(first_min+last_max)
       
       ff_str = "ff=#{'%0.1f' % ff }"
 
       title ="#{m_name}"
-
-      sparse_data=data.select.with_index { |x, i| (i<2) || (i % 2 == 0) }.group_by{|dd| dd[:date].hour}
-      hist = sparse_data.map { |hh, hour_rates| 
-        [hh, hour_rates.map { |dd| "#{'%3.0f' % (dd[:bid]/last_bid*1000)}" } ].join(': ') 
-      }.join("<br />")
       
-      rising_out<< { name: m_name, pumped:pumped, title: title, price_factor: ff, bid: last_bid, ask:last_ask, hist_prices:hist }
+      rising_out<< { name: m_name, pumped:pumped, title: title, price_factor: ff, bid: last_bid, ask:last_ask, hist_prices:"" }
       
     end
 
@@ -174,7 +167,14 @@ class PriceAnalz
     #sparse_data=prices.select.with_index { |x, i| (i<3) || (i % 5 == 0) }.group_by{|dd| dd[:date].hour}
     #hist = sparse_data.map { |hh, hour_rates| [hh, hour_rates.map { |dd| "#{'%3.0f' % (dd[:bid]/last_bid*1000)}" }.join(' ') ] }
     
-    prices=prices.select.with_index { |x, i| (i % 2 == 0) }
+    if hours_back>=48
+     prices=prices.select.with_index { |x, i| (i % 10 == 0) }
+    elsif hours_back>=24
+     prices=prices.select.with_index { |x, i| (i % 5 == 0) }
+    elsif hours_back>=6
+     prices=prices.select.with_index { |x, i| (i % 2 == 0) }
+    end
+    
     {last_bid:last_bid, last_ask:last_ask, data:prices}
   end
   

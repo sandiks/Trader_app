@@ -11,7 +11,8 @@ $(function(){
         }
     }		
 	});
-
+  bind_orders_volume();
+  
   $('.btn_show_tracked_pump').click(function() {
     
     var pump_type = $(this).data('type');
@@ -27,16 +28,27 @@ $(function(){
 
   });  
 
-  $('.btn_orders_volume').click(function() {
-    var pair = $(this).data('market');
-
-    $.get('/orders/orders_volume/',{pair:pair}, function(data) {
-        $("#pump_dialog #pump_text").html(data);
-    });
-  }); 
 
 });
 
+function bind_orders_volume(){
+
+  $('.btn_orders_volume').click(function() {
+    var pair = $(this).data('market');
+    var update = $(this).data('update');
+
+    $("#pump_dialog").dialog( "option", "title", "volumes: "+pair );
+    $("#pump_dialog #text").html("waiting...");
+
+    $.get('/order/orders_volume/',{pair:pair,update:update}, function(data) {
+        $("#pump_dialog #pump_text").html(data);
+    });
+
+    $("#pump_dialog").dialog("open");
+
+  }); 
+
+}
 
 </script>
 

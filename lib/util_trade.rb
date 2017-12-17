@@ -199,9 +199,6 @@ class TradeUtil
         else
           uuid= bittrex_api.sell(mname,q,bid)
 
-          if uuid
-            DB[:tprofiles].filter(pid:get_profile, name:mname).update(check:1)
-          end
           #TradeUtil.update_curr_balance(mname.sub('BTC-',''))
           #sleep 0.2
           #TradeUtil.update_curr_balance('BTC')
@@ -227,10 +224,11 @@ class TradeUtil
   end
 
   def self.add_to_simul(mname)
+    
     q = DB[:my_trade_pairs].first(pid:get_profile, name:mname)[:operation_amount] rescue 1
-    bid = TradeUtil.get_bid_ask(mname)[0] rescue 0
+    ask = TradeUtil.get_bid_ask(mname)[1] rescue 0
     DB[:simul_trades].filter(pid:get_profile,pair:mname).delete
-    DB[:simul_trades].insert({pid:get_profile,pair:mname, quantity:q, ppu:bid, buy_time: date_now(0)})
+    DB[:simul_trades].insert({pid:get_profile,pair:mname, quantity:q, ppu:ask, buy_time: date_now(0)})
     DB[:tprofiles].where(pid:get_profile, name: mname).update(pumped:2)
   end
 

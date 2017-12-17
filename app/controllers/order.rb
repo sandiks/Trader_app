@@ -15,8 +15,8 @@ Tweb::App.controllers :order do
     kk = "my_hist_orders_date-#{@pair}"
     
     OrderUtil.my_hist_orders(@pair)
-    sleep 0.5
-    OrderUtil.get_my_open_orders(@pair)    
+    #sleep 0.5
+    #OrderUtil.get_my_open_orders(@pair)    
       
     @bought = My_hst_orders.filter(Exchange:@pair, OrderType:'LIMIT_BUY').reverse_order(:TimeStamp).all
     
@@ -25,9 +25,10 @@ Tweb::App.controllers :order do
     render 'hist_orders', :layout => false
   end
 
-  get :load_orders, with:[:pair] do
+  get :load_open_orders, with:[:pair] do
     @pair = params[:pair]
-    OrderUtil.my_hist_orders(@pair)
+    OrderUtil.get_my_open_orders(@pair)    
+    
     return "--loaded #{@pair}"
   end
   
@@ -149,11 +150,57 @@ Tweb::App.controllers :order do
 ### falling- volume info
   get :orders_volume do
     mname = params[:pair]
-    type='BUY'
-    from = date_now(2)
-    volumes = DB[:order_volumes].filter(Sequel.lit('name=? and date > ? and type=', mname, from, type)).reverse_order(:date).all
+    p update = params[:update].to_i==1
 
-    return "copied orders: #{res}"
+    if update
+      VolumeAnalz.new.show_pump(mname) 
+    end
+
+    pump_from = date_now(2)
+
+    volumes = DB[:order_volumes].filter(Sequel.lit('name=?  and date > ? ', mname, pump_from))
+    .order(:date).select(:name,:date,:vol,:count, :type).all
+
+    sum=0
+    hist ={}
+
+    volumes.group_by{|dd| [dd[:date].hour, dd[:date].min/5]}.map do |hh_min, dd| 
+    
+      vols_sell = dd.select{|x| x[:type]=="SELL"}.inject(0){|sum,x| sum+=(x[:vol]||0)}
+      vols_buy = dd.select{|x| x[:type]=="BUY"}.inject(0){|sum,x| sum+=(x[:vol]||0)}
+      
+      diff = vols_buy-vols_sell
+      sum +=diff
+
+      if diff>0.3
+        vols_html = "<b> <<< #{'%0.8f' % diff}</b>"
+
+      elsif diff<-0.3
+        vols_html = "<b> >>> #{'%0.8f' % diff}</b>"
+
+      else
+        vols_html = "vol: #{'%0.8f' % diff}"            
+      end
+         
+      hist[hh_min] = "(#{hh_min[0]}:#{hh_min[1]*5}) #{vols_html} sum: #{'%0.8f' %  sum}" 
+    end    
+
+    res=[]
+    now_min = date_now.min/5+1
+    hour = date_now.hour-2
+
+    hours_mins = 24.times.map {|i| [hour+(now_min+i)/12 , (now_min+i)%12 ]  }
+
+    hours_mins.each do |hh_min|
+
+      if hist.key?(hh_min)
+        res << hist[hh_min]
+      else
+        res<< "(#{hh_min[0]}:#{hh_min[1]*5}) --------"
+      end
+    end
+
+    return res.join("<br />") 
   end
 
 end

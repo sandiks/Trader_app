@@ -1,7 +1,7 @@
 <%= partial 'shared/buy_sell_dialog' %>
 <%= partial 'shared/text_price_dialog' %>
 <%= partial 'shared/orders_dialog' %>
-<%= partial 'shared/pump_dialog' %>
+<%= partial 'shared/volume_dialog' %>
 
 <script>
 $(function(){
@@ -38,12 +38,9 @@ $(function(){
 
 <div style="margin:20px;20px;">
   <div style="color:red;margin-bottom:20px;">
-    Falling 
+    ALL 
   </div>
-  <div style="color:green;margin-bottom:20px;">
-    <%= @falling.map{|tt| " #{tt[:name]}"} %>
-  </div>
-  
+
   <button class="btn_show_tracked_pump btn_style_red" data-type="min_prices">SHOW PUMP(MIN PRICED)</button>
 
   <table class="forumTable" style="width:90%;">
@@ -51,7 +48,6 @@ $(function(){
       <tr>
         <th style="width:2%;">ID</th>
         <th style="width:8%;">name</th>
-        <th style="width:5%;">factor</th>
         <th style="width:10%;">bid-ask</th>
         <th style="width:20%;">history</th>
         <th style="width:7%;">[track]</th>
@@ -61,10 +57,10 @@ $(function(){
         <th style="width:10%;">HISTORY</th>
       </tr>
       
-      <%  @falling.each_with_index do |item, idx| %>
+      <%  @all.each_with_index do |item, idx| %>
 
       <tr>
-        <% mname = item[:name] 
+        <% mname = item[:name]
          exist = @my_balance[mname.sub('BTC-','')]
          pair_balance_info=""
          if exist
@@ -75,14 +71,14 @@ $(function(){
 
         <td ><%= idx %></td>
 
-        <td style="width:10%;"><a href="<%= "/pump/show_pump/#{mname}" %>"><%=item[:title]%>  </a>  <%= pair_balance_info%> </td>
-        <td ><%='%0.4f' % item[:price_factor]%></td>
+        <td style="width:10%;"><a href="<%= "/pump/show_pump/#{mname}" %>"><%=mname%>  </a>  <%= pair_balance_info%> </td>
         
         <td>
            <%= ('<b>%0.8f %0.8f </b>' % [item[:bid],item[:ask]]).html_safe%>
         </td>
 
-        <td><%= item[:hist_volumes].html_safe if  item[:hist_volumes]%>
+        <td>
+          <%= item[:hist_volumes].html_safe if  item[:hist_volumes]%>
         </td>
 
         <td style="text-align:center">
@@ -94,21 +90,22 @@ $(function(){
 
         </td>
         <td style="text-align:center">
-          <button class="btn_set_pump_level btn_style_red" data-level='0' data-curr="<%=item[:name]%>">pump 0</button>
-          <button class="btn_set_pump_level btn_style_red" data-level='1' data-curr="<%=item[:name]%>">pump 1</button>
-          <button class="btn_set_pump_level btn_style_red" data-level='2' data-curr="<%=item[:name]%>">pump 2</button>
+          <button class="btn_set_pump_level btn_style_red" data-level='0' data-curr="<%=mname %>">pump 0</button>
+          <button class="btn_set_pump_level btn_style_red" data-level='1' data-curr="<%=mname %>">pump 1</button>
+          <button class="btn_set_pump_level btn_style_red" data-level='2' data-curr="<%=mname %>">pump 2</button>
         </td>
 
         <td>
-          <button class="btn_buy_sell btn_style_green" data-curr="<%=item[:name]%>">BUY-SELL <%=item[:name] %></button>
+          <button class="btn_buy_sell btn_style_green" data-curr="<%=mname%>">BUY-SELL <%=mname %></button>
           <button class="btn_add_to_simul btn_style_green" data-curr="<%=item[:name]%>">to SIMUL <%=item[:name] %></button>
+          
         </td>
 
         <td>
           <button class="btn_hours_price btn_style_blue" data-otype="ask" data-hours="48" data-market="<%=mname%>">72h prices <%=mname%></button> 
         </td>
 
-        <td><button class="btn_hist_orders btn_style_blue" data-market="<%=item[:name] %>">hist <%=item[:name] %></button></td>
+        <td><button class="btn_hist_orders btn_style_blue" data-market="<%=mname %>">hist <%=mname %></button></td>
 
         
       </tr>

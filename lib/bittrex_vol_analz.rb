@@ -37,12 +37,9 @@ class VolumeAnalz
   def save_token_volume_hours(name,data)
     back10 =date_now(10)
     back20 =date_now(20)
-    back30 =date_now(30)
-    back60 =date_now(60)
 
     vol10 = data.select{ |dd|  dd[:date]>back10 }.reduce(0) { |sum, x| sum + x[:vol] }
     vol20 = data.select{ |dd|  dd[:date]>back20 }.reduce(0) { |sum, x| sum + x[:vol] }
-    vol30 = data.select{ |dd|  dd[:date]>back30 }.reduce(0) { |sum, x| sum + x[:vol] }
     log "---save_token_volume_hours  vol:#{[vol10,vol20,vol30]}"
     DB[:stat_market_volumes].filter(name:name).update(vol10:vol10, vol20:vol20, vol30:vol30);
 
@@ -62,7 +59,7 @@ class VolumeAnalz
   end
 
   ##--------------------
-  def date_now(min_back=10); DateTime.now.new_offset(0/24.0)- min_back/(24.0*60) ; end
+  def date_now(min_back=0); DateTime.now.new_offset(0/24.0)- min_back/(24.0*60) ; end
 
   def process_orders_and_save(_ords, mname, type)
     return unless _ords
@@ -275,13 +272,15 @@ class VolumeAnalz
       end    
     end
     
-    pump_from = date_now(60)
+    pump_from = date_now(120)
     
     volumes = DB[:order_volumes].filter(Sequel.lit('name in ?  and date > ? ', markets_names, pump_from))
     .reverse_order(:date).select(:name,:date,:vol,:count, :type).all
     
     volumes = volumes.group_by{|dd| dd[:name]}
-
+    
+    now_min = date_now.min/5+1
+    mins = 12.times.map {|i| (now_min+i)%12  }
     data.each do |dd|
       mname = dd[:name]
 
@@ -289,24 +288,41 @@ class VolumeAnalz
 
             sum=0
  
-            hist = volumes[mname].group_by{|dd| dd[:date].min/2}.map do |mmin, dd| 
+            hist ={}
             
-            vols_sell = dd.select{|x| x[:type]=="SELL"}.inject(0){|sum,x| sum+=(x[:vol]||0)}
-            vols_buy = dd.select{|x| x[:type]=="BUY"}.inject(0){|sum,x| sum+=(x[:vol]||0)}
+            volumes[mname].group_by{|dd| dd[:date].min/5}.map do |mmin, dd| 
             
-            diff = vols_buy-vols_sell
-            sum +=diff
+              vols_sell = dd.select{|x| x[:type]=="SELL"}.inject(0){|sum,x| sum+=(x[:vol]||0)}
+              vols_buy = dd.select{|x| x[:type]=="BUY"}.inject(0){|sum,x| sum+=(x[:vol]||0)}
+              
+              diff = vols_buy-vols_sell
+              sum +=diff
 
-            if diff>0.1
-              vols_html = "<b>vol: #{'%0.8f' % diff}</b>"
+              mark = diff>0 ? '<<' : '>>'
+
+              if diff>0.4
+                vols_html = "<b> <<<< #{'%0.8f' % diff}</b>"
+              elsif diff< -0.4
+                vols_html = "<b> >>>> #{'%0.8f' % diff}</b>"
+
+              else
+                vols_html = "#{mark} #{'%0.8f' % diff}"            
+              end
+              
+              hist[mmin] = "(#{mmin*5}..) #{vols_html} sum: #{'%0.8f' %  sum}" 
+          end
+          res=[]
+          mins.each do |min|
+
+            if hist.key?(min)
+              res << hist[min]
             else
-              vols_html = "vol: #{'%0.8f' % diff}"            
+              res<< "(#{min*5}..) --------"
             end
-            # "#{dd[:date].strftime("%k:%M ")} #{vols}  (#{dd[:count]})" 
-            "(#{mmin*2}..) #{vols_html} sum: #{'%0.8f' %  sum}" 
           end
 
-          dd[:hist_volumes]=hist.join("<br />")
+
+          dd[:hist_volumes]=res.join("<br />")
       end
     end
          

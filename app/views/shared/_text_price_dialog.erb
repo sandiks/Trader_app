@@ -17,12 +17,13 @@ $(function(){
   
     var market = $(this).data('market');
     var hours = $(this).data('hours');
+    var reverse = $(this).data('reverse');
     var otype = $(this).data('otype');
     $("#text_price").html("waiting...");
 
     $("#text_price_dialog").dialog( "option", "title", "prices ("+ hours + ") " + market );
 
-      $.get("/price/text_last_price", {market:market, hours:hours, otype:otype},
+      $.get("/price/text_last_price", {market:market, hours:hours, reverse:reverse, otype:otype},
           function(response) {
             $("#text_price").html(response);
       });

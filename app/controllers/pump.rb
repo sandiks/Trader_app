@@ -6,6 +6,41 @@ Tweb::App.controllers :pump do
     render 'index_pump'
     
   end
+
+  get :falling, with:[:hours] do
+    hours = params[:hours].to_f
+    @title = "price/falling #{hours}"
+
+    @falling = PriceAnalz.find_tokens_with_min_price(hours).take(20)
+    VolumeAnalz.new.add_to_min_token(@falling)
+    
+    @my_balance = BalanceUtil.get_balance.select{|k,v| v[:usdt]>2 }
+
+    render 'falling'
+    
+  end
+
+  get :all do
+    @title = "price-all"
+
+    @all = DB[:my_ticks].select(:name,:bid, :ask).all
+    @my_balance = BalanceUtil.get_balance.select{|k,v| v[:usdt]>2 }
+
+    render 'all'
+  end
+
+  get :rising,  with:[:hours]do
+    
+    hours = params[:hours].to_f
+    @title="price/rising #{hours}"
+    @ticks = DB[:my_ticks].to_hash(:name,:ask)
+
+    @rising = PriceAnalz.find_tokens_with_rising_price(hours).take(15)
+    VolumeAnalz.new.add_to_min_token(@rising)
+
+    render 'rising'
+    
+  end  
   get :check_pump do
     type = params[:type]
     hours = params[:hours]

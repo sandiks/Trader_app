@@ -1,6 +1,7 @@
 <%= partial 'shared/buy_sell_dialog' %>
 <%= partial 'shared/orders_dialog' %>
 <%= partial 'shared/text_price_dialog' %>
+<%= partial 'shared/volume_dialog' %>
 
 <script type="text/javascript">
 
@@ -25,10 +26,10 @@ $(function() {
       });
     }); 
     
-    $('.btn_load_orders').click(function() {
+    $('.btn_open_orders').click(function() {
       var market = $(this).data('market');
-      $.get('/order/load_orders/'+market, function(data) {
-          alert(data);
+      $.get('/order/load_open_orders/'+market, function(data) {
+          //alert(data);
       });
     }); 
 
@@ -70,10 +71,8 @@ function bigTick() {
 
     $.get('/trade/big_tick', function(data) {
         $('#tick').html(data);
-        bind_tick_table_buy_button();
-        bind_tick_table_sell_button();
-        bind_tick_table_rate_button();
-        bind_tick_table_delete_simul_button();
+        bind_tick_table_buy_sell_rate_buttons();
+        bind_tick_table_simul_buttons();
     });
 }
 
@@ -83,18 +82,9 @@ function lineTick() {
     });
     setTimeout(lineTick,30000);
 }
-function bind_tick_table_rate_button(){
 
-  $('.btn_currency_bid_ask').click(function() {
-      var curr = $(this).data('curr');
-      $.get("/trade/currency_tick/"+curr,
-          function(data) {
-            alert(data);
-      });            
-  });          
-}
 
-function bind_tick_table_buy_button(){
+function bind_tick_table_buy_sell_rate_buttons(){
 
   $('.btn_tick_table_buy').click(function(ev) {
       var curr = $(this).data('curr');
@@ -112,10 +102,7 @@ function bind_tick_table_buy_button(){
           }
       }); //get
 
-  }); //$('.btn_tick_table_buy')         
-}
-
-function bind_tick_table_sell_button(){
+  });   
 
   $('.btn_tick_table_sell').click(function() {
       var curr = $(this).data('curr');
@@ -133,11 +120,19 @@ function bind_tick_table_sell_button(){
           }
       }); //end get
 
-  }); // end $('.btn_tick_table_sell')   
+  });    
 
+  $('.btn_currency_bid_ask').click(function() {
+      var curr = $(this).data('curr');
+      $.get("/trade/currency_tick/"+curr,
+          function(data) {
+            alert(data);
+      });            
+  });  
 }
 
-function bind_tick_table_delete_simul_button(){
+
+function bind_tick_table_simul_buttons(){
 
     $('.btn_tick_table_delete_simul_pair').click(function() {
       var pair = $(this).data('curr');
@@ -145,7 +140,9 @@ function bind_tick_table_delete_simul_button(){
       $.get('/trade/delete_from_simul/',{pair:pair}, function(data) {
           alert(data);
       });
-    });         
+    });
+
+    bind_orders_volume();
 }
 
 </script>
@@ -158,20 +155,24 @@ function bind_tick_table_delete_simul_button(){
 </div>
 
 <div style="margin-left:20px;">
-  <table style="width:80%;">
+  <table style="width:100%;">
   <tr> 
-      <% for item in @balance.sort_by{|x| x[:usdt]} 
+      <% for item in @balance.sort_by{|x| x[:usdt]}.reverse 
       next if item[:currency]==base_crypto
          mname = "#{base_crypto}-#{item[:currency]}" %>
          <td>
-            <button class="btn_buy_sell btn_style_green" data-curr="<%=mname%>" >buy/sell <%=item[:currency] %></button>
+            <a href="https://bittrex.com/Market/Index?MarketName=<%=mname%>" target='blank'>BITTREX <%=item[:currency] %></a>
             <br />
-            <button class="btn_hours_price btn_style_blue" data-otype="bid" data-hours="96" data-market="<%=mname%>">96h prices <%=item[:currency]%></button> 
+            <button class="btn_hours_price btn_style_blue" data-otype="bid" data-hours="48" data-market="<%=mname%>">prices 48h <%=item[:currency]%></button> 
             <br />
-            <button class="btn_load_orders btn_style_blue" data-market="<%=mname%>">LOAD ORDERS <%=item[:currency] %></button>
+            <button class="btn_open_orders btn_style_blue" data-market="<%=mname%>">OPENS <%=item[:currency] %></button>
             <br />
             <button class="btn_hist_orders btn_style_blue" data-market="<%=mname%>">HIST <%=item[:currency] %></button>
-            <br /><a href="https://bittrex.com/Market/Index?MarketName=<%=mname%>" target='blank'>BITTREX <%=item[:currency] %></a>
+            <br />
+            USDT <%='%0.2f' %  item[:usdt] %>
+            <br />
+            <button class="btn_buy_sell btn_style_green" data-curr="<%=mname%>" >buy/sell <%=item[:currency] %></button>
+
          </td>
       <% end%>
  </tr>

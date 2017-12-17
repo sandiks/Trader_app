@@ -7,6 +7,10 @@ def get_db
   Sequel.connect(adapter: 'mysql2', host: 'localhost', database: 'trading', user: 'root')
 end
 
+def get_bitfinex_db
+  Sequel.connect(adapter: 'mysql2', host: 'localhost', database: 'bitfinex', user: 'root')
+end
+
 def date_now(hours=0); DateTime.now.new_offset(0/24.0)- hours/(24.0) ; end
 
 

@@ -91,7 +91,7 @@ class BalanceUtil
       next if usdt_bal<1
 
       ##### orders
-      from = date_now(120)
+      from = date_now(36)
       hist_orders = DB[:my_hst_orders].filter( Sequel.lit("(pid=? and Exchange=? and Closed > ? )", get_profile, mname, from) ).reverse_order(:Closed).all
       
       last_orders = find_last_hist_order_not_sold(hist_orders) 
@@ -107,7 +107,7 @@ class BalanceUtil
         end 
       end
       
-      order_info = last_orders.map { |last| "(#{ '%0.2f' % last[:Quantity]}) #{'%0.8f' % last[:Limit]} (#{'%0.1f' % (bid/last[:Limit]*100)})" }.join('<br />')
+      order_info = last_orders.take(5).map { |last| "(#{ '%0.2f' % last[:Quantity]}) #{'%0.8f' % last[:Limit]} (#{'%0.1f' % (bid/last[:Limit]*100)})" }.join('<br />')
       operation_amount = amounts[mname]
 
 
