@@ -18,13 +18,48 @@ class SiteUtil
 
   def self.date_now(hours_back=0); DateTime.now.new_offset(0/24.0)- hours_back/(24.0) ; end
 
-  def self.calc_max_buy(market_name)
-    p market_name
-    bids = DB[:my_ticks].filter(name:market_name).select_map(:ask)
+  def self.calc_max_buy(ask)
     balances = BalanceUtil.balance_table
-    btc = balances["BTC"] 
-    btc/bids[0] rescue 0
+    balances["BTC"][1]/ask rescue -1
   end 
+
+  def self.line_tick
+
+    data = BalanceUtil.get_balance.sort_by{|k,v| v[:usdt]}
+    res=[]
+    table_headers=[]
+    data.each do |mname,tt|
+      next if mname==base_crypto
+      table_headers<< "<th>#{mname}</th>"
+      res<< "<td  width=\"90\"><b>#{'%0.8f' % tt[:bid]} #{'%0.8f' % tt[:ask]} </b></td>"
+    end
+
+    btc_price="#{'%4.0f' % TradeUtil.usdt_base}"
+    usdt_sum = data.inject(0){|ss,x| ss+=x[1][:usdt]}
+    btc_sum =  data.inject(0){|ss,x| ss+=x[1][:btc]}
+    
+    bf_btc_price = BFDB[:hst_rates].filter(symb:3).reverse_order(:date).limit(50).select_map(:bid)
+    .select.with_index { |x, i| i % 5 == 0 }
+    .map { |dd|  '%6.0f' % dd }.join(', ') 
+
+    upd ="upd #{DateTime.now.strftime('%k:%M:%S')} "
+
+    info = "#{upd}<br /> 
+    #{base_crypto} price #{btc_price} <br /> 
+    BTC bitfinex  #{ bf_btc_price } <br /> 
+
+    USDT bal: #{'%0.2f' % usdt_sum}<br />
+    #{base_crypto} bal: #{'%0.8f' % btc_sum}<br />"
+
+    table = "#{info} <br />
+    <table class='forumTable' style='width:50%;'>
+    #{table_headers.join()}
+    <tr> #{res.join()} </tr>
+    </table>"
+
+    #upd ="#{DateTime.now.strftime('%k:%M:%S')}<br /> #{table}"
+  end
+
 
   def self.calc_price_for_one_token(market_name)
     
@@ -36,6 +71,7 @@ class SiteUtil
     end
   end 
 
+
   def self.table_tick
         
     data = BalanceUtil.get_balance_for_site.sort_by{|dd| dd[:usdt]}
@@ -45,9 +81,9 @@ class SiteUtil
     "<th>balance</th> 
     <th>available</th> 
     <th>USDT bal</th> 
-    <th>BID</th> 
-    <th>ASK</th> 
-    <th>diff</th> 
+    <th style='width:10%;'>BID</th> 
+    <th style='width:10%;'>ASK</th> 
+    <th style='width:7%;'>diff</th> 
     <th style='width:10%;'>pair</th>
     <th style='width:30%;'>actions</th>"
     
@@ -82,14 +118,17 @@ class SiteUtil
     <th style='width:10%;'>pair</th>
     <th style='width:30%;'>actions</th>"
 
-    simul_curr =  DB[:simul_trades].filter(pid:get_profile).all
+    simul_curr =  DB[:simul_trades].filter(pid:get_profile, base_crypto: base_group).all
     simul_curr.each do |curr|
+
       bid,ask = TradeUtil.get_bid_ask_from_market(curr[:pair]) 
+      diff = (bid||0)/ curr[:ppu] *100 
+      
       line ="" 
       line += "<td colspan='3'></td>" 
       line += "<td><b>#{ '%0.8f' % (bid||0) }</b></td>" 
       line += "<td><b>#{ '%0.8f' % (ask||0) }</b></td>" 
-      line += "<td>#{ '%0.1f' % (bid/curr[:ppu]*100) if curr[:ppu] }</td>" 
+      line += "<td>#{ '%0.1f' % diff  }</td>" 
       line += "<td><b>#{ curr[:pair] }</b></td>"
       btn_delete_code = "<button class='btn_tick_table_delete_simul_pair btn_style_green' data-curr='#{curr[:pair]}'>DELETE</button>"
       btn_volumes_code = "<button class='btn_orders_volume btn_style_green' data-update='1' data-market='#{curr[:pair]}'>VOLUMES</button>"
@@ -98,21 +137,24 @@ class SiteUtil
       line += "<td>#{curr[:buy_time].strftime("%F %k:%M ")} #{'%0.8f' % curr[:ppu]}</td>"
       lines_tr<<"<tr>#{line}</tr>"
     end
+    
+    info = ""
+    
+    if false
+      btc_price="#{'%4.0f' % TradeUtil.usdt_base}"
+      usdt_sum = data.inject(0){|ss,x| ss+=x[:usdt]}
+      btc_sum =  data.inject(0){|ss,x| ss+=x[:btc]}
+      bf_btc_price = BFDB[:hst_rates].filter(symb:3).reverse_order(:date).limit(8).select_map(:bid).map { |dd|  '%6.0f' % dd }.join(', ') 
 
-    btc_price="#{'%4.0f' % TradeUtil.usdt_base}"
-    usdt_sum = data.inject(0){|ss,x| ss+=x[:usdt]}
-    btc_sum =  data.inject(0){|ss,x| ss+=x[:btc]}
-    bf_btc_price = BFDB[:hst_rates].filter(symb:3).reverse_order(:date).limit(5).select_map(:bid) 
+      info = "upd #{DateTime.now.strftime('%k:%M:%S')} <br /> 
+      #{base_crypto} price #{btc_price} <br /> 
+      BTC bitfinex  #{ bf_btc_price } <br /> 
 
-    upd ="upd #{DateTime.now.strftime('%k:%M:%S')} "
+      USDT bal: #{'%0.2f' % usdt_sum}<br />
+      #{base_crypto} bal: #{'%0.8f' % btc_sum}<br />"
+    end
 
-    "#{upd}<br /> 
-    #{base_crypto} price #{btc_price} <br /> 
-    BTC bitfinex  #{ '%6.0f %6.0f %6.0f %6.0f %6.0f' % bf_btc_price} <br /> 
-
-    USDT bal: #{'%0.2f' % usdt_sum}<br />
-    #{base_crypto} bal: #{'%0.8f' % btc_sum}<br />
-    <table class='forumTable' style='width:75%;'>#{lines_tr.join()}</table>"
+    "#{info} <table class='forumTable' style='width:75%;'>#{lines_tr.join()}</table>"
 
   end
 
@@ -189,36 +231,6 @@ class SiteUtil
   
 ####
 
-  def self.get_tracked_markets(tracked_level,pid=2) ##used -- controllers/trade.rb:
-
-    tracked_pairs = DB[:tprofiles].filter(pid:get_profile, pumped:tracked_level, group:GROUP).select_map(:name)
-    tracked=[]
-    from = date_now(2)
-
-    usd_btc_bid = TradeUtil.usdt_base
-    
-    all_data = DB[:hst_btc_rates].filter(Sequel.lit("(date > ? and name in ?)", from, tracked_pairs)).reverse_order(:date).select(:name,:bid,:ask).all
-
-    tracked_pairs.each do |m_name|
-      currency = m_name.sub('BTC-','')
-
-      data = all_data.select{|dd|dd[:name] == m_name }
-      next if data.size<1
-      
-      last_bid=data.first[:bid]
-      last_ask=data.first[:ask]
-      usdt_price = usd_btc_bid*last_bid
-
-      last3=""
-      if last_bid!=0
-        last3=data.take(40).map { |dd| "#{'%4d' % (dd[:bid]/last_bid*1000)}" }.join(' ') 
-      end
-      tracked<< {name:m_name, usdt_price: usdt_price, last_bid:last_bid, last_ask:last_ask, hist_bids:last3 } 
-    end
-
-    tracked
-  end
-
   def self.select_for_buy(list) ##used -- controllers/trade.rb:
 
     tracked=[]
@@ -247,20 +259,7 @@ class SiteUtil
     tracked
   end  
   
-  def self.line_tick
 
-    ticks = DB[:my_ticks].all
-    res=[]
-    ticks.each do |tt|
-      if tt[:name]=="USDT-BTC"
-       res<< "<tr><td>#{tt[:name]}</td> <td> #{'%0.0f' % tt[:bid]}</td> <td>  #{'%0.f' % tt[:ask]}</td></tr>"
-      else
-       res<< "<tr><td> <b>#{tt[:name]}</b></td> <td> #{'%0.8f' % tt[:bid]}</td> <td> #{'%0.8f' % tt[:ask]}</td></tr>"
-      end
-    end
-    table = "<table class='forumTable' style='width:30%;'>#{res.join()}</table>"
-    upd ="upd #{DateTime.now.strftime('%k:%M:%S')}<br /> #{table}"
-  end
 
   def self.bot_sold
     from = date_now(5)

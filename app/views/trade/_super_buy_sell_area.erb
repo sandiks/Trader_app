@@ -1,0 +1,85 @@
+<script>
+$(document).ready(function() {
+
+    ///supet fast buy and sell
+    $('.btn_select_currency').click(function(ev) {
+        var curr = $(this).data('curr');
+        $('input:hidden[name="curr"]').val(curr);
+
+        $.get("/trade/buy_sell_info/"+curr,
+            function(data) {
+              $("#super_buy_sell_area #currency").html('<b>' + data.currency + '</b>');
+              $("#super_buy_sell_area #balance_info").html(data.balance);
+              $('#super_buy_sell_area input:text[name="quantity"]').val( data.operation_amount );
+              //$('#super_buy_sell_area input:text[name="rate"]').val(Number(data.ask).toFixed(8));
+              $("#super_buy_sell_area #orders_history").html(data.orders_history); 
+        });        
+        
+    });    
+
+    $('.btn_super_fast_buy').click(function(ev) {
+
+      var curr = $('input:hidden[name="curr"]').val();
+      var quantity = $('input:text[name="quantity"]').val();
+
+      if(!window.confirm("sure FAST BUY? "+curr)) { return }
+      else{
+        //return
+        
+        $.get("/trade/fast_buy_curr",{curr:curr,quant:quantity},
+            function(data) {
+              alert(data);
+        });
+                    
+      }
+    });
+
+
+    $('.btn_super_fast_sell').click(function(ev) {
+
+      var curr = $('input:hidden[name="curr"]').val();
+      var quantity = $('input:text[name="quantity"]').val();
+
+      if(!window.confirm("sure FAST SELL?")) { return }
+      else{
+        //alert('SELL');
+        //return
+
+        $.get("/trade/fast_sell_curr",{curr:curr,quant:quantity},
+            function(data) {
+              alert(data);
+        });            
+      }
+
+    });
+
+});  
+
+</script>
+
+<div id="super_buy_sell_area" style="margin-left:20px;">
+    <input type="hidden" name="curr" value="">
+    
+    <% BalanceUtil.get_balance.sort_by{|k,v| v[:usdt]}.each do |k,v| 
+       next if k=='BTC'
+      %>
+
+        <button class="btn_select_currency btn_style_blue" data-curr="<%= base_pair(k) %>">** <%=k %> **</button>
+    <% end%>
+    
+    <div style="margin-top: 10px;">
+      quantity: <%= text_field_tag :quantity %>
+       <button class='btn_super_fast_buy btn_style_green'>BUY</button>
+       <button class='btn_super_fast_sell btn_style_green'>SELL</button>  
+    </div> 
+
+    <div style="margin-top: 10px;">
+  
+      <div id="currency" style="margin-top: 10px;"></div>
+      <div id="balance_info" style="margin-top: 10px;"></div>
+      order history
+      <div id="orders_history" style="margin-top: 15px;"></div>
+
+    </div>
+
+</div>

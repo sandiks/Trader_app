@@ -23,11 +23,14 @@ Tweb::App.controllers :trade do
 
     @balance = BalanceUtil.get_balance_for_site 
 
+    super_tracked ={
+      title: "SUPER HOT!!! SOLD!!",
+      history_price_hours: PriceAnalz.get_tracked_hours(4), 
+      markets: PriceAnalz.get_tracked_markets(2)
+    }
     tracked = nil       #{title: "TRACKED", pairs:SiteUtil.get_tracked_markets(1)}
-
-    super_tracked ={title: "SUPER HOT!!! SOLD!!", pairs:SiteUtil.get_tracked_markets(2)}
+    
     @tracked_data= [super_tracked, tracked]
-
 
     @usdt_sum =@balance.inject(0){|ss,x| ss+=x[:usdt]} 
     @btc_sum =@balance.inject(0){|ss,x| ss+=x[:btc]} 
@@ -55,25 +58,45 @@ Tweb::App.controllers :trade do
 
   get '/buy_sell_info/:mname', :provides => :json do
     
-    mname = params[:mname]
+    p mname = params[:mname]
+    return if mname==base_crypto
     
-    max_buy = SiteUtil.calc_max_buy(mname)
-    item_price = SiteUtil.calc_price_for_one_token(mname)
+    bid, ask = TradeUtil.get_bid_ask_from_tick(mname)
+    max_buy = SiteUtil.calc_max_buy(ask)
+    item_price = ask*TradeUtil.usdt_base
     
+    balances = BalanceUtil.balance_table
+    curr = mname.sub("#{base_crypto}-",'')
+    pair_balance = balances[curr]
+
+    if pair_balance
+      balance = ' bal: %0.8f  avaiable: %0.8f' % pair_balance 
+    end
+
     #OrderUtil.get_my_open_orders(mname)
-    balance_str ="USDT price: #{'%0.4f' % item_price} <br /><br /> Max buy: #{'%0.8f' % max_buy}<br /><br /> "
+    balance_str ="Balance:#{balance}  <br/>USDT price: #{'%0.4f' % item_price}<br/> Max buy: #{'%0.8f' % max_buy}"
     amount =  TradeUtil.get_operation_amount(mname)
-    bid, ask = TradeUtil.get_bid_ask(mname)
+    
+
+    ## orders info
+    #@bought = My_hst_orders.filter(Exchange:@pair, OrderType:'LIMIT_BUY').reverse_order(:Closed).limit(10).all
+    #@selled = My_hst_orders.filter(Exchange:@pair, OrderType:'LIMIT_SELL').reverse_order(:Closed).limit(10).all
+    
+    orders_history = OrderUtil.my_hist_orders_from_db2(mname,bid)
+    #orders_history = partial('order/hist_orders', :object => [@bought,@selled]) # render('order/hist_orders', layout: false)
+    
     
     data={
+      currency:mname, 
       balance:balance_str, 
       operation_amount: ('%0.4f' % amount),
       bid: bid,
       ask: ask,
-      orders_history: OrderUtil.my_hist_orders_from_db(mname),
+      orders_history: orders_history,
     }
     data.to_json
   end
+
   get '/orderbook/:mname', :provides => :json do
     
     mname = params[:mname]
@@ -81,16 +104,14 @@ Tweb::App.controllers :trade do
     data = SiteUtil.order_book_both(mname)
     #bal = bot.update_curr_balance(curr.sub('BTC-',''))
 
-    @open_orders = OrderUtil.get_my_open_orders(mname)
-    opened_orders_html = partial('order/open_orders', object: @open_orders) 
-
     max_buy = SiteUtil.calc_max_buy(mname)
     item_price = SiteUtil.calc_price_for_one_token(mname)
+    bid, ask = TradeUtil.get_bid_ask_from_tick(mname)
 
-    balance_ss ="USDT price: #{'%0.4f' % item_price} <br /><br /> Max buy: #{'%0.8f' % max_buy}<br /><br /> "
-    amount =  DB[:my_trade_pairs].first( name:mname)[:operation_amount]||0
+    balance_str ="USDT price: #{'%0.4f' % item_price} <br /><br /> Max buy: #{'%0.8f' % max_buy}<br /><br /> "
+    amount = TradeUtil.get_operation_amount(mname)
 
-    data={table1:data[0], table2:data[1], balance:balance_ss, operation_amount: ('%0.4f' % amount) , opened_orders:opened_orders_html}
+    data={table1:data[0], table2:data[1], balance:balance_str, operation_amount: ('%0.4f' % amount) , opened_orders:""}
     data.to_json
   end
 
@@ -102,13 +123,13 @@ Tweb::App.controllers :trade do
     res=TradeUtil.buy_curr(curr,qq,rate)
     #OrderUtil.get_my_open_orders(curr)
 
-    return "[buy_curr] #{curr} q:#{qq} rate:#{rate} response:#{res}"
+    return "#{curr} q:#{'%0.0f' % qq} rate:#{'%0.8f' % rate} response:#{res}"
   end
 
   get '/sell_curr' do
     curr = params[:curr]
     qq = params[:q].to_f
-    rate = BigDecimal.new(params[:r])
+    p rate = BigDecimal.new(params[:r])
 
     res=TradeUtil.sell_curr(curr,qq,rate)
     return "[sell_curr] #{curr} q:#{qq} rate:#{rate} response:#{res}"

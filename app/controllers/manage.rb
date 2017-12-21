@@ -11,11 +11,6 @@ Tweb::App.controllers :manage do
     copy_market_to_profile
   end  
 
-  get '/track/:pair' do
-    Tprofiles.where(pid:get_profile, name: params[:pair]).update(check: 1- Sequel[:check])    
-
-    redirect url(:manage, :index)
-  end
 
   get '/enabled/:pair' do
     Tprofiles.where(pid:get_profile, name: params[:pair]).update(enabled: 1- Sequel[:enabled])    
@@ -34,7 +29,7 @@ Tweb::App.controllers :manage do
     curr = params[:curr]
     pair = "BTC-#{curr}"
 
-    columns = [:step, :operation_amount, :sell_factor]
+    columns = [:step, :operation_amount, :sell_factor, :center_price]
     
     dd = DB[:my_trade_pairs].filter(pid:get_profile, name:pair).select_map(columns).first
     

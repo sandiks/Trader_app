@@ -1,7 +1,7 @@
 <script>
 $(function(){
 
-	$("#buy_sell_dialog").dialog({
+	$("#buy_sell_ordbook_dialog").dialog({
 		autoOpen: false,
 		width: 700,
 		height: 600,
@@ -12,42 +12,41 @@ $(function(){
     }		
 	});
 
-	$('.btn_buy_sell').click(function() {
+	$('.btn_buy_sell_with_order_book').click(function() {
   
     var curr = $(this).data('curr');
-    $("#buy_sell_dialog").dialog( "option", "title", 'SELL '+curr );
-    $('#buy_sell_dialog input:hidden[name="curr"]').val(curr);
-    $('#buy_sell_dialog input:text[name="q"]').val(0);
+    $("#buy_sell_ordbook_dialog").dialog( "option", "title", 'SELL '+curr );
+    $('#buy_sell_ordbook_dialog input:hidden[name="curr"]').val(curr);
+    $('#buy_sell_ordbook_dialog input:text[name="q"]').val(0);
 
     $("#book_bid").html('');
     $("#book_ask").html('');
 
-    $.get("/trade/tick/"+curr,
+    $.get("/trade/orderbook/"+curr,
         function(data) {
           $("#book_bid").html(data.table1);
           $("#book_ask").html(data.table2);
           $("#book_bid td, #book_ask td").click(function(){ 
-            $('#buy_sell_dialog input:text[name="rate"]').val( $(this).text() ) 
+            $('#buy_sell_ordbook_dialog input:text[name="rate"]').val( $(this).text() ) 
           }); 
           
           $("#balance_info").html(data.balance);
-          //alert(data.operation_amount);
-          $('#buy_sell_dialog input:text[name="q"]').val( data.operation_amount ); 
+          $('#buy_sell_ordbook_dialog input:text[name="q"]').val( data.operation_amount ); 
 
-          $("#opened_orders").html(data.opened_orders);
-          bind_orders();
+          //$("#opened_orders").html(data.opened_orders);
+          //bind_orders();
 
 
     });
-		$("#buy_sell_dialog").dialog("open");
+		$("#buy_sell_ordbook_dialog").dialog("open");
 	});
 
 
   $('#btn_buy_curr').click(function() {
 
-    var curr = $('#buy_sell_dialog input:hidden[name="curr"]').val();
-    var q = $('#buy_sell_dialog input:text[name="q"]').val();
-    var rate = $('#buy_sell_dialog input:text[name="rate"]').val();
+    var curr = $('#buy_sell_ordbook_dialog input:hidden[name="curr"]').val();
+    var q = $('#buy_sell_ordbook_dialog input:text[name="q"]').val();
+    var rate = $('#buy_sell_ordbook_dialog input:text[name="rate"]').val();
 
     $.get("/trade/buy_curr", {curr: curr, q:q, r:rate},
         function(data) {
@@ -57,9 +56,9 @@ $(function(){
 
   $('#btn_sell_curr').click(function() {
 
-    var curr = $('#buy_sell_dialog input:hidden[name="curr"]').val();
-    var q = $('#buy_sell_dialog input:text[name="q"]').val();
-    var rate = $('#buy_sell_dialog input:text[name="rate"]').val();
+    var curr = $('#buy_sell_ordbook_dialog input:hidden[name="curr"]').val();
+    var q = $('#buy_sell_ordbook_dialog input:text[name="q"]').val();
+    var rate = $('#buy_sell_ordbook_dialog input:text[name="rate"]').val();
 
     $.get("/trade/sell_curr", {curr: curr, q:q, r:rate},
         function(data) {
@@ -69,21 +68,11 @@ $(function(){
  
 
 });
-function bind_orders(){
 
-  $('.btn_close_order').click(function() {
-      var ord_uuid = $(this).data('ord-uuid');
-      $.get("/order/close_open_order/" + ord_uuid,
-          function(data) {
-            alert(data);
-      });            
-  });          
-
-}
 
 </script>
 
-<div id="buy_sell_dialog" title="BUY/SELL">
+<div id="buy_sell_ordbook_dialog" title="BUY/SELL">
   <div class="row">
   	<label for="title"></label>
   </div>

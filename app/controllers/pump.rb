@@ -11,7 +11,7 @@ Tweb::App.controllers :pump do
     hours = params[:hours].to_f
     @title = "price/falling #{hours}"
 
-    @falling = PriceAnalz.find_tokens_with_min_price(hours).take(20)
+    @falling = PriceAnalz.find_tokens_with_min_price(hours).take(33)
     VolumeAnalz.new.add_to_min_token(@falling)
     
     @my_balance = BalanceUtil.get_balance.select{|k,v| v[:usdt]>2 }
@@ -23,7 +23,7 @@ Tweb::App.controllers :pump do
   get :all do
     @title = "price-all"
 
-    @all = DB[:my_ticks].select(:name,:bid, :ask).all
+    @all = DB[:my_ticks].filter(base:base_group).select(:name,:bid, :ask).all
     @my_balance = BalanceUtil.get_balance.select{|k,v| v[:usdt]>2 }
 
     render 'all'
@@ -33,7 +33,7 @@ Tweb::App.controllers :pump do
     
     hours = params[:hours].to_f
     @title="price/rising #{hours}"
-    @ticks = DB[:my_ticks].to_hash(:name,:ask)
+    @ticks = DB[:my_ticks].filter(base:base_group).to_hash(:name,:ask)
 
     @rising = PriceAnalz.find_tokens_with_rising_price(hours).take(15)
     VolumeAnalz.new.add_to_min_token(@rising)

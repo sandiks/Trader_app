@@ -71,7 +71,7 @@ Tweb::App.controllers :price do
       
         mark= "#{'|'.rjust((diff-50)/2,'.')} #{'%0.1f' % diff} "       
         time = "<b>#{'%0.8f' % curr} </b>"
-        res << "[#{pp[:date].strftime("%k:%M")}] #{time} #{mark}"
+        res << "(#{pp[:date].strftime("%k_%M")}) #{time} #{mark}"
       end
 
     end

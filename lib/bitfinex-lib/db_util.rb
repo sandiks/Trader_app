@@ -45,9 +45,12 @@ class BitfinexDB
   end
 
   def self.save_wallet(wallet) #need show open orders
+
     DB[:wallets].delete
     wallet.each do |ww|
-      DB[:wallets].insert({pid:2, type:ww[0],currency:ww[1], balance:ww[2], available:ww[4] })
+      #DB[:wallets].insert({pid:2, type:ww[0],currency:ww[1], balance:ww[2], available:ww[4] })
+      p "--insert wallet"
+      DB[:wallets].insert({pid:2, type:ww['type'],currency:ww['currency'], balance:ww['amount'], available:ww['available'] })
     end
   end   
 end

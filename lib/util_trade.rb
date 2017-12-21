@@ -1,6 +1,7 @@
 require 'sequel'
 require 'json'
 #require 'dotenv'
+require_relative 'bittrex_api'
 
 
 class TradeUtil
@@ -36,8 +37,10 @@ class TradeUtil
     end
 
     dd= bittrex_api.get_ticker(mname)
-    save_tick_to_db(mname,dd)
-    [dd['Bid'],dd['Ask']]
+    if dd
+      save_tick_to_db(mname,dd) if dd['Bid']!=0
+      [dd['Bid'],dd['Ask']]
+    end
   end
   
   def self.get_bid_ask_from_tick(curr) 
@@ -68,7 +71,7 @@ class TradeUtil
       amount = dd[:operation_amount]
       
       if amount.nil? || amount==0
-        bid,ask= TradeUtil.get_bid_ask(mname)
+        bid,ask= TradeUtil.get_bid_ask_from_tick(mname)
         amount = 10/(bid*TradeUtil.usdt_base).round(4) 
       end
 
@@ -77,7 +80,7 @@ class TradeUtil
     
     else
       DB[:my_trade_pairs].insert({pid:get_profile, name:mname, operation_amount:0})
-      bid,ask= TradeUtil.get_bid_ask(mname)
+      bid,ask= TradeUtil.get_bid_ask_from_tick(mname)
       amount = 10/(bid*TradeUtil.usdt_base).round(4) 
 
     end  
@@ -101,21 +104,24 @@ class TradeUtil
   def self.buy_curr(mname, q, r)
     mname = "BTC-#{mname}" if !mname.start_with?("BTC-") 
     
-    DB[:tprofiles].filter(pid:get_profile, name:mname).update(check:2)
     update_operation_amount(mname,q)
     
     if config(:simulate)
       p "simulate"
       SimulatorUtil.buy_simulate(mname,q,r)
     else
-      res=  bittrex_api.buy(mname,q,r)
-      sleep 0.1
-      TradeUtil.update_curr_balance(mname.sub('BTC-',''))
-      sleep 0.1
-      TradeUtil.update_curr_balance('BTC')
+      uuid = bittrex_api.buy(mname,q,r)
+
+      
+      if uuid
+        DB[:my_trades].insert({pid:get_profile, ord_uuid:uuid, type:"BUY", name:mname, quantity:q, ppu:r,  bought_at: date_now(0)})
+        #DB[:my_trade_pairs].filter(pid:get_profile, name:mname).update(center_price: r)
+      end
+
       #sleep 0.2
-      #OrderUtil.my_hist_orders(mname)
-      res
+      OrderUtil.my_hist_orders(mname)
+
+      uuid
     end
   end 
 
@@ -125,10 +131,11 @@ class TradeUtil
       SimulatorUtil.sell_simulate(mname,q,r)
     else
       uuid = bittrex_api.sell(mname,q,r)
-      sleep 0.1
-      TradeUtil.update_curr_balance(mname.sub('BTC-',''))
-      sleep 0.1
-      TradeUtil.update_curr_balance('BTC')
+      
+      DB[:my_trades].insert({pid:get_profile, ord_uuid:uuid, type:"SELL", name:mname, quantity:q, ppu:r,  bought_at: date_now(0)})
+
+      #sleep 0.1
+      #TradeUtil.update_curr_balance('BTC')
 
       uuid
     end
@@ -150,7 +157,7 @@ class TradeUtil
       
       ask = TradeUtil.get_bid_ask_from_tick(mname)[1]
 
-      p in_range = q*ask>0.0003 && q*ask<0.0015
+      p in_range = q*ask>0.0003 && q*ask<0.005
 
       if in_range
         
@@ -159,7 +166,16 @@ class TradeUtil
         else
           p uuid =  bittrex_api.buy(mname, q, ask)
           p "----------fast_buy_curr #{mname} q #{'%0.8f' % q} ask #{'%0.8f' % ask } uuid #{uuid}"
+
           update_operation_amount(mname,q)
+          #sleep 0.2
+          #TradeUtil.update_curr_balance(mname.sub('BTC-',''))
+
+          if uuid
+            DB[:my_trades].insert({pid:get_profile, ord_uuid:uuid, type:"BUY", name:mname, quantity:q, ppu:ask,  bought_at: date_now(0)})
+            #DB[:my_trade_pairs].filter(pid:get_profile, name:mname).update(center_price: ask)
+
+          end
           "---bought q=#{'%0.2f' % q}  ask=#{'%0.8f' % ask} uuid=#{uuid}"
         end
 
@@ -190,7 +206,7 @@ class TradeUtil
       bid_ask = TradeUtil.get_bid_ask(mname)
       bid = bid_ask ? bid_ask[0] : TradeUtil.get_bid_ask_from_market(mname)[0]
 
-      p price_in_range = q*bid<0.0020
+      p price_in_range = q*bid<0.005
       
       if price_in_range
         
@@ -198,10 +214,10 @@ class TradeUtil
           SimulatorUtil.sell_simulate(mname,q,bid)
         else
           uuid= bittrex_api.sell(mname,q,bid)
-
-          #TradeUtil.update_curr_balance(mname.sub('BTC-',''))
-          #sleep 0.2
-          #TradeUtil.update_curr_balance('BTC')
+          update_operation_amount(mname,q)
+          if uuid
+            DB[:my_trades].insert({pid:get_profile, ord_uuid:uuid, type:"SELL", name:mname, quantity:q, ppu:bid,  bought_at: date_now(0)})
+          end
 
           "---sold q=#{'%0.2f' % q}  bid=#{'%0.8f' % bid} uuid=#{uuid}"
         end

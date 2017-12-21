@@ -7,11 +7,13 @@
 
 $(function() {
     bigTick();
+    lineTick();
 
     $('#btn_refresh_tick').click(function() {
       $.get('/trade/refresh_balance', function(data) {
           $('#tick').html(data);
-          bind_tick_table_rate_button();
+          alert('done --refresh_balance');
+          //bind_tick_table_rate_button();
           //location.reload();
           
       });
@@ -20,7 +22,6 @@ $(function() {
       if(!window.confirm( 'Are you sure?' )){
             return
       }
-
       $.get('/order/refresh_orders', function(data) {
           alert(data);
       });
@@ -34,19 +35,6 @@ $(function() {
     }); 
 
 
-///////// toggle real / simulate
-
-    $('#btn_toggle_real_simulator').click(function(ev) {
-      if(!window.confirm( 'Are you sure?' )){
-            return
-      }
-      $.get("/trade/toggle_real_simalte",
-          function(data){
-            
-           location.reload();
-      });
-    });
-
     $('.btn_set_pump_level').click(function() {
       var curr = $(this).data('curr');
       var level = $(this).data('level');
@@ -56,31 +44,32 @@ $(function() {
       });
     }); 
 
-  $('.btn_add_to_simul').click(function() {
-    var curr = $(this).data('curr');
+    $('.btn_add_to_simul').click(function() {
+      var curr = $(this).data('curr');
 
-    $.get('/trade/add_to_simul/',{curr:curr}, function(data) {
-        alert(data);
-    });
-  }); 
+      $.get('/trade/add_to_simul/',{curr:curr}, function(data) {
+          alert(data);
+      });
+    }); 
+
 
 });
 
+function lineTick() {
+    $.get('/trade/line_tick', function(data) {
+        $('#line_tick').html(data);
+    });
+    setTimeout(lineTick,5000);
+}
+
 function bigTick() {
-    setTimeout(bigTick,30000);
+    setTimeout(bigTick,50000);
 
     $.get('/trade/big_tick', function(data) {
         $('#tick').html(data);
         bind_tick_table_buy_sell_rate_buttons();
         bind_tick_table_simul_buttons();
     });
-}
-
-function lineTick() {
-    $.get('/trade/line_tick', function(data) {
-        $('#line_tick').html(data);
-    });
-    setTimeout(lineTick,30000);
 }
 
 
@@ -91,16 +80,14 @@ function bind_tick_table_buy_sell_rate_buttons(){
       var q = $(this).next().val();
 
       $.get("/trade/currency_tick/"+curr, function(data) {
-          if(!window.confirm( data )){
-            return
-          }
-          else{
             $.get("/trade/fast_buy_curr",{curr:curr,quant:q},
                 function(data) {
                   alert(data);
             });            
-          }
-      }); //get
+
+          //if(!window.confirm( data )){ return }
+          //else{}
+      }); 
 
   });   
 
@@ -147,12 +134,6 @@ function bind_tick_table_simul_buttons(){
 
 </script>
 
-<div style="margin-left:20px;">
-
-  <button id='btn_refresh_tick' class="btn_style_red"> REFRESH BALANCE</button>
-  <button id='btn_refresh_orders' class="btn_style_red"> REFRESH ORDERS</button>
-  <button class="btn_open_orders btn_style_red" data-market="all">ALL OPENED_ORDERS</button>
-</div>
 
 <div style="margin-left:20px;">
   <table style="width:100%;">
@@ -163,21 +144,39 @@ function bind_tick_table_simul_buttons(){
          <td>
             <a href="https://bittrex.com/Market/Index?MarketName=<%=mname%>" target='blank'>BITTREX <%=item[:currency] %></a>
             <br />
-            <button class="btn_hours_price btn_style_blue" data-otype="bid" data-hours="48" data-market="<%=mname%>">prices 48h <%=item[:currency]%></button> 
-            <br />
             <button class="btn_open_orders btn_style_blue" data-market="<%=mname%>">OPENS <%=item[:currency] %></button>
             <br />
             <button class="btn_hist_orders btn_style_blue" data-market="<%=mname%>">HIST <%=item[:currency] %></button>
             <br />
+            <button class="btn_hours_price btn_style_blue" data-otype="bid" data-hours="96" data-market="<%=mname%>">prices 96h <%=item[:currency]%></button> 
+            <br />
+
             USDT <%='%0.2f' %  item[:usdt] %>
             <br />
             <button class="btn_buy_sell btn_style_green" data-curr="<%=mname%>" >buy/sell <%=item[:currency] %></button>
-
+            <br />
+            <button class="btn_buy_sell_with_order_book btn_style_green" data-curr="<%=mname%>" >buy/sell order book <%=item[:currency] %></button>
+            <br />
+            <button class='btn_orders_volume btn_style_green' data-update='1' data-market='BTC-<%=item[:currency] %>'>VOLUMES</button>
          </td>
       <% end%>
  </tr>
  </table>
 </div>
+
+<div style="margin-left:20px;">
+
+  <button id='btn_refresh_tick' class="btn_style_red"> REFRESH BALANCE</button>
+  <button id='btn_refresh_orders' class="btn_style_red"> REFRESH ORDERS</button>
+  <button class="btn_open_orders btn_style_red" data-market="all">ALL OPENED_ORDERS</button>
+</div>
+
+
+<div id="line_tick" style="color:green;margin: 20px;20px;0px;0px">
+    line_tick
+</div>
+
+<% partial 'super_buy_sell_area' %>
 
 <div id="tick" style="color:green;margin: 20px;20px;0px;0px">
     tick
@@ -204,11 +203,12 @@ function bind_tick_table_simul_buttons(){
         <%= tracked[:title] %>
       </div>
 
-      <table class="forumTable" style="width:80%;">
+      <table class="forumTable" style="width:90%;">
         <tbody>
           <tr>
             <th>market</th>
             <th>USDT price</th>
+            <th style='width:25%;'>hours price history <%=tracked[:history_price_hours] %></th>
 
             <th>[BUY/SELL]</th>
             <th>SIMUL</th>
@@ -218,11 +218,13 @@ function bind_tick_table_simul_buttons(){
             <th>URL</th>
           </tr>
           
-          <% for item in tracked[:pairs].sort_by{|x| -x[:name]} %>
+          <% for item in tracked[:markets].sort_by{|x| x[:price_history][1]} %>
           <tr>
             <td><b><%=item[:name]%></b></td>
 
             <td><%='%0.3f' % item[:usdt_price]%></td>
+      
+            <td><%= item[:price_history].join(" ").html_safe %></td>
     
             <td><button class="btn_buy_sell btn_style_green" data-curr="<%=item[:name]%>">buy <%=item[:name].sub('BTC-','')%></button> </td>
 

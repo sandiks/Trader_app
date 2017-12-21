@@ -49,9 +49,18 @@ def config(key)
   end
 end
 
+def base_group
+  config(:group) 
+end
+
 def base_crypto
   config(:group) ==1 ? "BTC" : "ETH"
 end
+
+def base_pair(curr='')
+  config(:group) ==1 ? "BTC-#{curr}" : "ETH-#{curr}"
+end
+
 
 def save_markets_summaries(direct=true, reload_market=false)
   
@@ -108,10 +117,42 @@ def copy_market_to_profile
   end
 end
 
-def track_market(sym,enb="+")
-  enb_= enb=="+" ? 1:0
-  DB[:tprofiles].filter(pid:get_profile, name:"BTC-#{sym}").update(check:enb_)
+def copy_market_to_market_ids
+  market_names = DB[:markets].filter(Sequel.like(:name, 'BTC-%')).order(:Created).select_map([:name, :Created])
+
+  DB.transaction do
+    exist = DB[:market_ids].select_map(:name)
+    indx=0
+    market_names.each do |mname,created|
+
+      if !exist.include?(mname)
+       indx+=1
+       DB[:market_ids].insert({id: indx, name:mname, created: created}) 
+       p "--insert #{mname}"
+      end
+
+    end
+  end
 end
+def copy_market_to_ticks
+  market_names = DB[:markets].filter(Sequel.like(:name, 'ETH-%')).order(:Created).select_map([:name, :Created])
+
+  DB.transaction do
+    exist = DB[:my_ticks].filter(base:base_group).select_map(:name)
+    indx=0
+    market_names.each do |mname,created|
+
+      if !exist.include?(mname)
+       indx+=1
+       DB[:my_ticks].insert({base: base_group, name:mname}) 
+       p "--insert #{mname}"
+      end
+
+    end
+  end
+end
+
+#copy_market_to_ticks
 
 def del_rates
   from = date_now(48)

@@ -1,0 +1,46 @@
+<script>
+$(function(){
+
+	$("#text_price_dialog").dialog({
+		autoOpen: false,
+		width: 650,
+		height: 600,
+    buttons: {
+        "Close": function () {
+            $(this).dialog("close")
+        }
+    }		
+	});
+
+
+  $('.btn_hours_price').click(function() {
+  
+    var market = $(this).data('market');
+    var hours = $(this).data('hours');
+    var reverse = $(this).data('reverse');
+    var otype = $(this).data('otype');
+    $("#text_price").html("waiting...");
+
+    $("#text_price_dialog").dialog( "option", "title", "prices ("+ hours + ") " + market );
+
+      $.get("/price/text_last_price", {market:market, hours:hours, reverse:reverse, otype:otype},
+          function(response) {
+            $("#text_price").html(response);
+      });
+
+    $("#text_price_dialog").dialog("open");
+
+  });
+      
+});
+
+
+</script>
+
+<div id="text_price_dialog" title="Basic dialog">
+  <div class="row">
+  	<label for="title"></label>
+  </div>
+
+  <div id="text_price"></div>
+</div>

@@ -168,11 +168,11 @@ class PriceAnalz
     #hist = sparse_data.map { |hh, hour_rates| [hh, hour_rates.map { |dd| "#{'%3.0f' % (dd[:bid]/last_bid*1000)}" }.join(' ') ] }
     
     if hours_back>=48
-     prices=prices.select.with_index { |x, i| (i % 10 == 0) }
+     prices=prices.select.with_index { |x, i| (i<120 && i % 4 == 0) || (i>120 && i % 10 == 0) }
     elsif hours_back>=24
-     prices=prices.select.with_index { |x, i| (i % 5 == 0) }
+     prices=prices.select.with_index { |x, i| (i<5) || (i % 5 == 0) }
     elsif hours_back>=6
-     prices=prices.select.with_index { |x, i| (i % 2 == 0) }
+     prices=prices.select.with_index { |x, i| (i<5) || (i % 2 == 0) }
     end
     
     {last_bid:last_bid, last_ask:last_ask, data:prices}
@@ -195,23 +195,6 @@ class PriceAnalz
   end
 
   @@last_rised=[]
-  def self.get_balance(usdt_rate)
-
-    balances = DB[:my_balances].to_hash(:currency,:Balance)
-    curr_ = balances.keys.map { |rr| "BTC-#{rr}" }
-    bids = DB[:my_ticks].filter(Sequel.lit(" name in ? ", curr_)).to_hash(:name,:bid) 
-
-    res={}
-
-    balances.each do |k,v|
-      next if k=='BTC'
-       bid=bids["BTC-#{k}"] 
-       btc_bal = v*bid rescue 0
-       usdt_bal = btc_bal*usdt_rate
-       res[k]={ btc:btc_bal, usdt:usdt_bal}
-    end
-    res
-  end  
 
   def self.show_falling_and_rising_prices(hours_back=24,group=1)
 
@@ -294,4 +277,57 @@ class PriceAnalz
     {falling: falling_markets, rising: rising_markets, tracked:tracked, usd:usd_rate }
   end
 
+  def self.get_tracked_hours(count=4)
+    now = date_now(0)
+    hours = 24.times.map {|hh| (24+now.hour - hh) % 24}.take(4)     
+  end
+
+  def self.get_tracked_markets(tracked_level,pid=2) ##used -- controllers/trade.rb:
+    
+    
+        tracked_pairs = DB[:tprofiles].filter(pid:get_profile, pumped:tracked_level, group:GROUP).select_map(:name)
+        tracked=[]
+    
+        from = date_now(8)
+    
+        usd_btc_bid = TradeUtil.usdt_base
+        hours = PriceAnalz.get_tracked_hours(4) 
+    
+        if GROUP==1
+          all_data = DB[:hst_btc_rates].filter(Sequel.lit(" date > ? and name in ? and HOUR(date) in ? ", from, tracked_pairs,hours))
+          .reverse_order(:date).select(:name,:date,:bid,:ask).all
+        else
+          all_data = DB[:hst_eth_rates].filter(Sequel.lit("(date > ? and name in ?)", from, tracked_pairs))
+          .reverse_order(:date).select(:name,:date,:bid,:ask).all
+        end
+        
+        tracked_pairs.each do |m_name|
+          
+          currency = m_name.sub('BTC-','')
+    
+          data = all_data.select{|dd|dd[:name] == m_name }
+          #next if data.size<1
+    
+          last_bid=data.first[:bid]
+          last_ask=data.first[:ask]
+    
+          prices = data.group_by{|dd| dd[:date].hour}
+            .select{|k,vv| hours.include? k }
+            .map { |k,vv| { hour: k, avg: vv.map { |x|  x[:bid]}.mean } }
+  
+          usdt_price = usd_btc_bid*last_bid  
+
+          history=[]
+
+          for i in 0..4 do 
+              diff = prices[i][:avg]/prices[0][:avg]*100 rescue 0
+              history <<  diff.to_f.round(1)
+          end
+    
+          tracked<< {name:m_name, usdt_price: usdt_price, last_bid:last_bid, last_ask:last_ask, price_history:history } 
+        
+        end
+
+        tracked
+      end
 end

@@ -67,21 +67,76 @@ class OrderUtil
     end
     res
   end
+
+
+  def self.my_hist_orders_from_db2(mname,bid) #need show open orders
+
+      from = date_now(12)
+      hist_orders = DB[:my_hst_orders].filter( Sequel.lit("(pid=? and Exchange=? and Closed > ? )", get_profile, mname, from) ).reverse_order(:Closed).all
+
+      sell_orders=[]
+
+      buy_sell_orders=[]
+  
+      hist_orders.each do|ord|
+      
+        if ord[:OrderType]=='LIMIT_SELL'
+          sell_orders <<ord
+        elsif ord[:OrderType]=='LIMIT_BUY'
+          buy_sell_orders << [ord, sell_orders.shift]
+        end
+    
+      end  
+      sum=0
+      cost_sum=0
+      order_info = buy_sell_orders.map do  |buy_sell| 
+  
+         if buy_sell[1]
+
+          buy = buy_sell[0]
+          sell = buy_sell[1]
+          "
+          buy: #{buy[:Closed].strftime('%d_%k:%M')} 
+          sell: #{sell[:Closed].strftime('%d_%k:%M')}
+           q:#{'%0.2f'% buy[:Quantity]} diff=#{'%4.1f' % (sell[:Limit]/buy[:Limit]*100 ) })" 
+         
+         else
+          buy = buy_sell[0]
+          sum +=buy[:Quantity]
+          cost_sum+=buy[:Quantity]*buy[:Limit]
+
+          "(#{'%0.2f'% buy[:Quantity]}) #{'%4.1f' % (bid/buy[:Limit]*100) } #{'%0.8f' % buy[:Limit] }  
+          sum=#{'%0.2f' % sum} cost_sum=#{'%0.8f' % cost_sum}" 
+         end
+      end
+      order_info.join("<br />")
+      
+  end  
+
   def self.my_hist_orders_from_db(mname) #need show open orders
 
+
+    #all = My_hst_orders.filter(pid:get_profile, Exchange:mname).reverse_order(:Closed).limit(10).all
+    
+    bought = My_hst_orders.filter(Exchange:mname, OrderType:'LIMIT_BUY').reverse_order(:Closed).limit(6).all
+    selled = My_hst_orders.filter(Exchange:mname, OrderType:'LIMIT_SELL').reverse_order(:Closed).limit(6).all
+     
     res=[]
-
-    bought = My_hst_orders.filter(pid:get_profile, Exchange:mname, OrderType:'LIMIT_BUY').order(:TimeStamp).limit(3).all
-    selled = My_hst_orders.filter(pid:get_profile, Exchange:mname, OrderType:'LIMIT_SELL').order(:TimeStamp).limit(3).all
-
-      #.map { |dd| "#{dd[:time]} type: #{dd[:type]} quantity: #{dd[:q]}  price: #{dd[:price]}" }.join('<br />'),
-    (bought+selled).each do |ord|
-      #tm = DateTime.parse(ord[:TimeStamp])
+    bought.each do |ord|
       r = ord[:Limit]
       res<< "<tr><td>#{ord[:TimeStamp].strftime('%F  %k:%M')}</td><td> #{ord[:OrderType]}</td><td>#{'%0.1f' % ord[:Quantity]}</td><td>#{'%0.8f' % r} </td><tr>"
     end
+    html1 = "<table class='forumTable' ><th>time</th><th>SELL/BUY</th><th>quantity</th><th>price per unit</th>#{res.join()}</table>"
 
-    "<table class='forumTable'><th>time</th><th>SELL/BUY</th><th>quantity</th><th>price per unit</th>#{res.join()}</table>"
+    res=[]
+    selled.each do |ord|
+      r = ord[:Limit]
+      res<< "<tr><td>#{ord[:TimeStamp].strftime('%F  %k:%M')}</td><td> #{ord[:OrderType]}</td><td>#{'%0.1f' % ord[:Quantity]}</td><td>#{'%0.8f' % r} </td><tr>"
+    end
+    html2 = "<table class='forumTable'><th>time</th><th>SELL/BUY</th><th>quantity</th><th>price per unit</th>#{res.join()}</table>"
+    
+    html ="<table style='width:50%;'><tr><td>#{html1}</td> <td>#{html2}</td></tr></table>"
+
   end  
 end
 

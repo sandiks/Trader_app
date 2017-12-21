@@ -7,7 +7,6 @@ Dotenv.load('.env')
 
 class BitfinexBot
 
-    BASE_URL = "https://api.bitfinex.com/v2/"
     API_KEY = ENV["BF_API_KEY"]
     API_SECRET = ENV["BF_SECRET"]
 
@@ -15,14 +14,25 @@ class BitfinexBot
   Bitfinex::Client.configure do |conf|
       conf.secret = API_SECRET
       conf.api_key = API_KEY
-      conf.use_api_v2
+      #conf.use_api_v2
   end
 
-  def self.get_wallet
+  def self.load_wallet
     client = Bitfinex::Client.new
-    ww=client.wallets
+    ww=client.balances
     BitfinexDB.save_wallet(ww)
+  end
 
+  def self.buy_pair(pair,q,r)
+    client = Bitfinex::Client.new
+    pp =pair.sub('t','')
+    client.new_order(pair, q, "market", "buy", r)
+  end
+
+  def self.sell_pair(pair,q,r)
+    client = Bitfinex::Client.new
+    pp =pair.sub('t','')
+    client.new_order(pair, q, "market", "sell", r)
   end
 
 end

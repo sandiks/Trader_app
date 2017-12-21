@@ -74,7 +74,7 @@ $(function(){
         <td style="width:10%;"><a href="<%= "/pump/show_pump/#{mname}" %>"><%=mname%>  </a>  <%= pair_balance_info%> </td>
         
         <td>
-           <%= ('<b>%0.8f %0.8f </b>' % [item[:bid],item[:ask]]).html_safe%>
+           <%= ('<b>%0.8f %0.8f </b>' % [item[:bid]||0,item[:ask]||0]).html_safe%>
         </td>
 
         <td>

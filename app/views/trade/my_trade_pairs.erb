@@ -48,15 +48,20 @@ $(document).ready(function() {
      <%= text_field_tag :step %>
      <button class="btn_set_trading_pair_column"  data-column="step">set step</button>
      </div>
+
      <div style="margin-top: 15px;">
-     
-     <%= text_field_tag :operation_amount %>
-     <button class="btn_set_trading_pair_column"  data-column="operation_amount">operation_amount</button>
+      <%= text_field_tag :operation_amount %>
+      <button class="btn_set_trading_pair_column"  data-column="operation_amount">operation_amount</button>
      </div>
-     <div style="margin-top: 15px;">
      
-     <%= text_field_tag :sell_factor %>
-     <button class="btn_set_trading_pair_column" data-column="sell_factor">sell_factor</button>
+     <div style="margin-top: 15px;">
+      <%= text_field_tag :sell_factor %>
+      <button class="btn_set_trading_pair_column" data-column="sell_factor">sell_factor</button>
+     </div>
+
+     <div style="margin-top: 15px;">
+       <%= text_field_tag :center_price %>
+       <button class="btn_set_trading_pair_column" data-column="center_price">center_price</button>
      </div>
 
 

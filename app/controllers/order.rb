@@ -16,13 +16,13 @@ Tweb::App.controllers :order do
     
     OrderUtil.my_hist_orders(@pair)
     #sleep 0.5
-    #OrderUtil.get_my_open_orders(@pair)    
+    OrderUtil.get_my_open_orders(@pair)    
       
     @bought = My_hst_orders.filter(Exchange:@pair, OrderType:'LIMIT_BUY').reverse_order(:TimeStamp).all
     
     @selled = My_hst_orders.filter(Exchange:@pair, OrderType:'LIMIT_SELL').reverse_order(:TimeStamp).all
 
-    render 'hist_orders', :layout => false
+    render '_hist_orders', :layout => false
   end
 
   get :load_open_orders, with:[:pair] do
@@ -131,6 +131,7 @@ Tweb::App.controllers :order do
 
   get :open_orders, with:[:pair] do
     @pair = params[:pair]
+    #OrderUtil.get_my_open_orders(@pair)    
     
     if @pair=="all"
       @open_orders=OrderUtil.get_my_open_orders_from_db
