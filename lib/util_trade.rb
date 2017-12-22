@@ -75,7 +75,7 @@ class TradeUtil
         amount = 10/(bid*TradeUtil.usdt_base).round(4) 
       end
 
-      p "---get_operation_amount #{mname} amount #{amount} "
+      #p "---get_operation_amount #{mname} amount #{amount} "
       amount
     
     else

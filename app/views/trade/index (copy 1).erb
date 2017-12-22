@@ -1,4 +1,4 @@
-<%= partial 'shared/buy_sell_with_order_book_dialog' %>
+<%= partial 'shared/buy_sell_dialog' %>
 <%= partial 'shared/orders_dialog' %>
 <%= partial 'shared/text_price_dialog' %>
 <%= partial 'shared/volume_dialog' %>
@@ -59,7 +59,7 @@ function lineTick() {
     $.get('/trade/line_tick', function(data) {
         $('#line_tick').html(data);
     });
-    setTimeout(lineTick,25000);
+    setTimeout(lineTick,5000);
 }
 
 function bigTick() {
@@ -151,32 +151,34 @@ function bind_tick_table_simul_buttons(){
   <table class="forumTable" style="width:50%;">
     <tbody>
       <tr>
-        <th style='width:15%;'>market</th>
+        <th>USDT price</th>
+        <th style='width:5%;'>market</th>
 
         <th>[BUY/SELL]</th>
         <th>SIMUL</th>
         <th>URL</th>
       </tr>
       
-      <% for item in @simul 
-      mname = item[:pair] 
+      <% for item in @balance.sort_by{|x| x[:usdt]} 
+      mname = "#{base_crypto}-#{item[:currency]}" 
       %>
       <tr>
-        <td><b><%=mname%></b></td>
+        <td><%='%0.2f' % item[:usdt]%></td>
+        <td><b><%=item[:currency]%></b></td>
 
         <td>
-          <button class="btn_buy_sell_with_order_book btn_style_green" data-curr="<%=mname%>" >buy/sell <%= mname %></button>
+          <button class="btn_buy_sell btn_style_green" data-curr="<%=mname%>" >buy/sell <%=item[:currency] %></button>
         
         </td>
 
         <td>
-          <button class="btn_open_orders btn_style_blue" data-market="<%=mname%>">OPENS <%= mname %></button>
-            <button class="btn_hist_orders btn_style_blue" data-market="<%=mname%>">HIST <%= mname %></button>
+          <button class="btn_open_orders btn_style_blue" data-market="<%=mname%>">OPENS <%=item[:currency] %></button>
+            <button class="btn_hist_orders btn_style_blue" data-market="<%=mname%>">HIST <%=item[:currency] %></button>
             <button class="btn_hours_price btn_style_blue" data-otype="bid" data-hours="96" data-market="<%=mname%>">prices 96h <%=item[:currency]%></button> 
 
         </td>
         
-        <td><a href="https://bittrex.com/Market/Index?MarketName=<%= mname %>" target='blank'>Bittrex</a></td>
+        <td><a href="https://bittrex.com/Market/Index?MarketName=<%= item[:name] %>" target='blank'>Bittrex</a></td>
         
       </tr>
       <% end %>
@@ -191,6 +193,8 @@ function bind_tick_table_simul_buttons(){
 </div>
 
 <div style="margin-left:20px;">
+
+
   
 
   <% @tracked_data.each do |tracked|

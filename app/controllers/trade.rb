@@ -22,6 +22,7 @@ Tweb::App.controllers :trade do
     @title = "trade::index"
 
     @balance = BalanceUtil.get_balance_for_site 
+    @simul = BalanceUtil.get_simul_tokens 
 
     super_tracked ={
       title: "SUPER HOT!!!",
@@ -62,7 +63,7 @@ Tweb::App.controllers :trade do
     return if mname==base_crypto
     
     bid, ask = TradeUtil.get_bid_ask_from_tick(mname)
-    max_buy = SiteUtil.calc_max_buy(ask)
+    p max_buy = 0.019/ask #SiteUtil.calc_max_buy(ask)
     item_price = ask*TradeUtil.usdt_base
     
     balances = BalanceUtil.balance_table
@@ -77,16 +78,8 @@ Tweb::App.controllers :trade do
     balance_str ="Balance:#{balance}  <br/>USDT price: #{'%0.4f' % item_price}<br/> Max buy: #{'%0.8f' % max_buy}"
     amount =  TradeUtil.get_operation_amount(mname)
     
-
-    ## orders info
-    #@bought = My_hst_orders.filter(Exchange:@pair, OrderType:'LIMIT_BUY').reverse_order(:Closed).limit(10).all
-    #@selled = My_hst_orders.filter(Exchange:@pair, OrderType:'LIMIT_SELL').reverse_order(:Closed).limit(10).all
-    #orders_history = partial('order/hist_orders', :object => [@bought,@selled]) # render('order/hist_orders', layout: false)
-    
-    #orders_history = OrderUtil.my_hist_orders_from_db2(mname,bid)
-    
-    @open_orders=OrderUtil.get_my_open_orders(mname)
-    orders_history = partial('order/open_orders', :object => @open_orders)
+    #@open_orders=OrderUtil.get_my_open_orders(mname)
+    orders_history = "" #partial('order/open_orders', :object => @open_orders)
     
     data={
       currency:mname, 
@@ -106,9 +99,9 @@ Tweb::App.controllers :trade do
     data = SiteUtil.order_book_both(mname)
     #bal = bot.update_curr_balance(curr.sub('BTC-',''))
 
-    max_buy = SiteUtil.calc_max_buy(mname)
-    item_price = SiteUtil.calc_price_for_one_token(mname)
     bid, ask = TradeUtil.get_bid_ask_from_tick(mname)
+    p max_buy = 0.019/ask #SiteUtil.calc_max_buy(ask)
+    item_price = ask*TradeUtil.usdt_base
 
     balance_str ="USDT price: #{'%0.4f' % item_price} <br /><br /> Max buy: #{'%0.8f' % max_buy}<br /><br /> "
     amount = TradeUtil.get_operation_amount(mname)

@@ -56,8 +56,8 @@ class SiteUtil
     usdt_sum = data.inject(0){|ss,x| ss+=x[1][:usdt]}
     btc_sum =  data.inject(0){|ss,x| ss+=x[1][:btc]}
     
-    bf_btc_price = BFDB[:hst_rates].filter(symb:3).reverse_order(:date).limit(50).select_map(:bid)
-    .select.with_index { |x, i| i % 5 == 0 }
+    bf_btc_price = BFDB[:hst_rates].filter(symb:3).reverse_order(:date).limit(10).select_map(:bid)
+    .select.with_index { |x, i| i<10 || i % 5 == 0 }
     .map { |dd|  '%6.0f' % dd }.join(', ') 
 
 

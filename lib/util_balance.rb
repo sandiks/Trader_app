@@ -122,6 +122,30 @@ class BalanceUtil
     res
   end  
 
+  def self.get_simul_tokens ##used in ---controllers/trade.rb
+  
+    res=[]
+    simul_curr =  DB[:simul_trades].filter(pid:get_profile, base_crypto: base_group).all
+    simul_curr.each do |curr|
+
+      bid,ask = TradeUtil.get_bid_ask_from_market(curr[:pair]) 
+      diff = (bid||0)/ curr[:ppu] *100 
+
+      diff_str=""
+      if diff>106
+       diff_str="<sapn style='color:red;'>#{'%0.1f' % diff}</span>"
+      elsif diff<0.4
+       diff_str="<sapn style='color:green;'>#{'%0.1f' % diff}</span>"
+      else
+       diff_str="#{'%0.1f' % diff}"
+      end 
+
+      res << {pair:curr[:pair], last_bid:bid, last_ask:ask, diff:diff_str, percents:""}
+      
+    end
+    res
+    
+  end
 #############
 
   def self.find_last_hist_order_not_sold(hist_orders)
