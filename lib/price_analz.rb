@@ -283,15 +283,29 @@ class PriceAnalz
   end
 
   def self.get_tracked_markets(hours_back=8, pid=2) ##used -- controllers/trade.rb:
+    market_list = DB[:tprofiles].filter(pid:get_profile, pumped:2, group:GROUP).select_map(:name)
+    get_markets_history_prices(market_list)   
+  end
+  
+  def self.time_grouped_by_20min
+
+     now = date_now(0)
+     res =[]
+     
+     12.times do
+      res<<"#{now.hour}:#{(now.min/10)*10}"
+      now = now- 1/144.0
+     end
+
+     res.join(', ')
+  end
+  
+  def self.get_markets_history_prices(markets_list) ##used -- controllers/trade.rb:
     
-    
-        tracked_pairs = DB[:tprofiles].filter(pid:get_profile, pumped:2, group:GROUP).select_map(:name)
-        tracked=[]
-    
-        from = date_now(hours_back)
+        tracked={}    
+        from = date_now(2)
     
         usd_btc_bid = TradeUtil.usdt_base
-        hours = PriceAnalz.get_tracked_hours(hours_back) 
     
         if GROUP==1
           table = DB[:hst_btc_rates]
@@ -299,36 +313,33 @@ class PriceAnalz
           table = DB[:hst_eth_rates]
         end
 
-        all_data = table.filter(Sequel.lit(" date > ? and name in ? and HOUR(date) in ? ", from, tracked_pairs,hours))
+        all_data = table.filter(Sequel.lit(" date > ? and name in ? ", from, markets_list) )
           .reverse_order(:date).select(:name,:date,:bid,:ask).all
         
-        tracked_pairs.each do |m_name|
+        markets_list.each do |m_name|
           
           currency = m_name.sub('BTC-','')
     
           data = all_data.select{|dd|dd[:name] == m_name }
-          #next if data.size<1
     
           last_bid=data.first[:bid]
           last_ask=data.first[:ask]
     
-          prices = data.group_by{|dd| dd[:date].hour}
-            .select{|k,vv| hours.include? k }
-            .map { |k,vv| { hour: k, avg: vv.map { |x|  x[:bid]}.mean } }
+          prices = data.group_by{|dd| [dd[:date].hour, dd[:date].min/10]}
+            .map { |k,vv| { time: k, avg: vv.map { |x|  x[:bid]}.mean } }
   
           usdt_price = usd_btc_bid*last_bid  
-
           history=[]
 
-          for i in 0..hours_back do 
+          for i in 0..prices.size-1 do 
               diff = prices[i][:avg]/prices[0][:avg]*100 rescue 0
-              history <<  diff.to_f.round(1)
+              history <<  diff
           end
     
-          tracked<< {name:m_name, usdt_price: usdt_price, last_bid:last_bid, last_ask:last_ask, price_history:history } 
+          tracked[m_name]= {name:m_name, usdt_price: usdt_price, last_bid:last_bid, last_ask:last_ask, price_history:history } 
         
         end
 
         tracked
-      end
+      end      
 end

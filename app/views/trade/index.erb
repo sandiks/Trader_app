@@ -63,7 +63,7 @@ function lineTick() {
 }
 
 function bigTick() {
-    setTimeout(bigTick,8000);
+    setTimeout(bigTick,30000);
 
     $.get('/trade/big_tick', function(data) {
         $('#tick').html(data);
@@ -148,13 +148,14 @@ function bind_tick_table_simul_buttons(){
 
 <div style="margin-left:20px;">
 
-  <table class="forumTable" style="width:50%;">
+  <table class="forumTable" style="width:80%;">
     <tbody>
       <tr>
-        <th style='width:15%;'>market</th>
+        <th style='width:10%;'>market</th>
+        <th style='width:35%;'>price history <%=PriceAnalz.time_grouped_by_20min %></th>
 
         <th>[BUY/SELL]</th>
-        <th>SIMUL</th>
+        <th style='width:25%;'>SIMUL</th>
         <th>URL</th>
       </tr>
       
@@ -163,16 +164,17 @@ function bind_tick_table_simul_buttons(){
       %>
       <tr>
         <td><b><%=mname%></b></td>
+        <td><%= item[:price_history].map { |dd| '%0.1f' % dd }.join(" ").html_safe %></td>
 
         <td>
           <button class="btn_buy_sell_with_order_book btn_style_green" data-curr="<%=mname%>" >buy/sell <%= mname %></button>
-        
+          <button class='btn_orders_volume btn_style_green' data-update='1' data-market='<%=mname%>'>VOLUMES</button>
         </td>
 
         <td>
           <button class="btn_open_orders btn_style_blue" data-market="<%=mname%>">OPENS <%= mname %></button>
             <button class="btn_hist_orders btn_style_blue" data-market="<%=mname%>">HIST <%= mname %></button>
-            <button class="btn_hours_price btn_style_blue" data-otype="bid" data-hours="96" data-market="<%=mname%>">prices 96h <%=item[:currency]%></button> 
+            <button class="btn_hours_price btn_style_blue" data-otype="bid" data-hours="5" data-market="<%=mname%>">prices 96h <%=item[:currency]%></button> 
 
         </td>
         
@@ -202,10 +204,7 @@ function bind_tick_table_simul_buttons(){
 
       <div style="color:green;margin-top:10px;">
         TOP 10 rising [1h 2h 3h 4h]
-        <div style="margin-top:10px;"><%= tracked[:markets].sort_by{|x| x[:price_history][1]}.take(10).map { |dd| dd[:name]  }.join(", ") %></div>
-        <div style="margin-top:10px;"><%= tracked[:markets].sort_by{|x| x[:price_history][2]}.take(10).map { |dd| dd[:name]  }.join(", ") %></div>
-        <div style="margin-top:10px;"><%= tracked[:markets].sort_by{|x| x[:price_history][3]}.take(10).map { |dd| dd[:name]  }.join(", ") %></div>
-        <div style="margin-top:10px;"><%= tracked[:markets].sort_by{|x| x[:price_history][4]}.take(10).map { |dd| dd[:name]  }.join(", ") %></div>
+        <div style="margin-top:10px;"><%= tracked[:markets].sort_by{|k,x| x[:price_history][1]}.take(10).map { |k,v| v[:name]  }.join(", ") %></div>
       </div>
 
       <div style="color:red;margin-top:10px;">
@@ -215,9 +214,9 @@ function bind_tick_table_simul_buttons(){
       <table class="forumTable" style="width:90%;">
         <tbody>
           <tr>
-            <th>market</th>
+            <th style='width:8%;'>market</th>
             <th>USDT price</th>
-            <th style='width:25%;'>hours price history <%=tracked[:history_price_hours] %></th>
+            <th style='width:35%;'>price history <%=PriceAnalz.time_grouped_by_20min %></th>
 
             <th>[BUY/SELL]</th>
             <th>SIMUL</th>
@@ -227,30 +226,30 @@ function bind_tick_table_simul_buttons(){
             <th>URL</th>
           </tr>
           
-          <% for item in tracked[:markets].sort_by{|x| x[:price_history][3]} %>
+          <% tracked[:markets].sort_by{|k,v| v[:price_history][1]}.each do |mname, item| %>
           <tr>
-            <td><b><%=item[:name]%></b></td>
+            <td><b><%=mname%></b></td>
 
             <td><%='%0.3f' % item[:usdt_price]%></td>
       
-            <td><%= item[:price_history].join(" ").html_safe %></td>
+            <td><%= item[:price_history].map { |dd| '%0.1f' % dd }.join(" ").html_safe %></td>
     
-            <td><button class="btn_buy_sell btn_style_green" data-curr="<%=item[:name]%>">buy <%=item[:name].sub('BTC-','')%></button> </td>
+            <td><button class="btn_buy_sell_with_order_book btn_style_green" data-curr="<%=mname%>">buy <%=mname.sub('BTC-','')%></button> </td>
 
             <td>
-              <button class="btn_add_to_simul btn_style_green" data-curr="<%=item[:name]%>">simul <%=item[:name].sub('BTC-','') %></button>
+              <button class="btn_add_to_simul btn_style_green" data-curr="<%=mname%>">simul <%=mname.sub('BTC-','') %></button>
             </td>
 
-            <td><button class="btn_hours_price btn_style_blue" data-otype="bid" data-hours="72" data-market="<%=item[:name] %>">72h <%=item[:name]%></button> </td>
+            <td><button class="btn_hours_price btn_style_blue" data-otype="bid" data-hours="24" data-market="<%=mname %>">72h <%=mname %></button> </td>
 
-            <td><button class="btn_hist_orders btn_style_blue" data-market="<%=item[:name] %>">hist <%=item[:name] %></button></td>
+            <td><button class="btn_hist_orders btn_style_blue" data-market="<%=mname %>">hist <%=mname %></button></td>
     
             <td style="text-align:center">
-              <button class="btn_set_pump_level btn_style_red" data-level='0' data-curr="<%=item[:name]%>">pump 0</button>
-              <button class="btn_set_pump_level btn_style_red" data-level='1' data-curr="<%=item[:name]%>">pump 1</button>
-              <button class="btn_set_pump_level btn_style_red" data-level='2' data-curr="<%=item[:name]%>">pump 2</button>
+              <button class="btn_set_pump_level btn_style_red" data-level='0' data-curr="<%=mname%>">pump 0</button>
+              <button class="btn_set_pump_level btn_style_red" data-level='1' data-curr="<%=mname%>">pump 1</button>
+              <button class="btn_set_pump_level btn_style_red" data-level='2' data-curr="<%=mname%>">pump 2</button>
             </td>            
-            <td><a href="https://bittrex.com/Market/Index?MarketName=<%= item[:name] %>" target='blank'>Bittrex</a></td>
+            <td><a href="https://bittrex.com/Market/Index?MarketName=<%= mname %>" target='blank'>Bittrex</a></td>
             
           </tr>
           <% end %>

@@ -126,9 +126,15 @@ class BalanceUtil
   
     res=[]
     simul_curr =  DB[:simul_trades].filter(pid:get_profile, base_crypto: base_group).all
+    simul_names = simul_curr.map { |dd| dd[:pair]  }
+    
+    prices = PriceAnalz.get_markets_history_prices(simul_names)
+
     simul_curr.each do |curr|
 
-      bid,ask = TradeUtil.get_bid_ask_from_market(curr[:pair]) 
+      pair = curr[:pair]
+
+      bid,ask = TradeUtil.get_bid_ask_from_market(pair) 
       diff = (bid||0)/ curr[:ppu] *100 
 
       diff_str=""
@@ -140,7 +146,7 @@ class BalanceUtil
        diff_str="#{'%0.1f' % diff}"
       end 
 
-      res << {pair:curr[:pair], last_bid:bid, last_ask:ask, diff:diff_str, percents:""}
+      res << { pair:pair, last_bid:bid, last_ask:ask, diff:diff_str, price_history: prices[pair][:price_history] }
       
     end
     res

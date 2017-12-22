@@ -199,7 +199,6 @@ class VolumeAnalz
   end
 
   def show_pump(mname)
-    p "#{mname}"
 
     last_checked = DB[:stat_market_volumes].first(name:mname)
     

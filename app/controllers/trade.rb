@@ -26,12 +26,11 @@ Tweb::App.controllers :trade do
 
     super_tracked ={
       title: "SUPER HOT!!!",
-      history_price_hours: PriceAnalz.get_tracked_hours(8), 
-      markets: PriceAnalz.get_tracked_markets(8)
+      markets: PriceAnalz.get_tracked_markets(2)
     }
     tracked = nil       #{title: "TRACKED", pairs:SiteUtil.get_tracked_markets(1)}
     
-    @tracked_data= [super_tracked, tracked]
+    @tracked_data= [super_tracked]
 
     @usdt_sum =@balance.inject(0){|ss,x| ss+=x[:usdt]} 
     @btc_sum =@balance.inject(0){|ss,x| ss+=x[:btc]} 
@@ -100,7 +99,7 @@ Tweb::App.controllers :trade do
     #bal = bot.update_curr_balance(curr.sub('BTC-',''))
 
     bid, ask = TradeUtil.get_bid_ask_from_tick(mname)
-    p max_buy = 0.019/ask #SiteUtil.calc_max_buy(ask)
+    p max_buy = SiteUtil.calc_max_buy(ask)
     item_price = ask*TradeUtil.usdt_base
 
     balance_str ="USDT price: #{'%0.4f' % item_price} <br /><br /> Max buy: #{'%0.8f' % max_buy}<br /><br /> "
