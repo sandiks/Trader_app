@@ -29,8 +29,10 @@ $(function(){
           $('#buy_sell_dialog input:text[name="q"]').val( data.operation_amount );
           $("#bid").html('BID ' + Number(data.bid).toFixed(8)); 
           $("#ask").html('ASK ' + Number(data.ask).toFixed(8)); 
-          $('#buy_sell_dialog input:text[name="rate"]').val(Number(data.ask).toFixed(8));
+          //$('#buy_sell_dialog input:text[name="rate"]').val(Number(data.ask).toFixed(8));
+          $('#buy_sell_dialog input:text[name="rate"]').val('');
           $("#orders_history").html(data.orders_history); 
+          bind_order_delete_btn();
 
       
     });
@@ -64,7 +66,7 @@ $(function(){
  
 
 });
-function bind_orders(){
+function bind_order_delete_btn(){
 
   $('.btn_close_order').click(function() {
       var ord_uuid = $(this).data('ord-uuid');

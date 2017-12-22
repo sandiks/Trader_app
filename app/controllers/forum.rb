@@ -1,7 +1,7 @@
 Tweb::App.controllers :forum do
   
   @pid=2
-  FORUMS=[159,1,67,52,8]
+  FORUMS=[8,1,67,159]
 
   get :max_reposnses_threads do
     #system "cd '#{ForumHelper::CRAWLER_DIR}'; ruby run_for_site.rb stat_all"

@@ -279,27 +279,28 @@ class PriceAnalz
 
   def self.get_tracked_hours(count=4)
     now = date_now(0)
-    hours = 24.times.map {|hh| (24+now.hour - hh) % 24}.take(4)     
+    hours = 24.times.map {|hh| (24+now.hour - hh) % 24}.take(count)     
   end
 
-  def self.get_tracked_markets(tracked_level,pid=2) ##used -- controllers/trade.rb:
+  def self.get_tracked_markets(hours_back=8, pid=2) ##used -- controllers/trade.rb:
     
     
-        tracked_pairs = DB[:tprofiles].filter(pid:get_profile, pumped:tracked_level, group:GROUP).select_map(:name)
+        tracked_pairs = DB[:tprofiles].filter(pid:get_profile, pumped:2, group:GROUP).select_map(:name)
         tracked=[]
     
-        from = date_now(8)
+        from = date_now(hours_back)
     
         usd_btc_bid = TradeUtil.usdt_base
-        hours = PriceAnalz.get_tracked_hours(4) 
+        hours = PriceAnalz.get_tracked_hours(hours_back) 
     
         if GROUP==1
-          all_data = DB[:hst_btc_rates].filter(Sequel.lit(" date > ? and name in ? and HOUR(date) in ? ", from, tracked_pairs,hours))
-          .reverse_order(:date).select(:name,:date,:bid,:ask).all
+          table = DB[:hst_btc_rates]
         else
-          all_data = DB[:hst_eth_rates].filter(Sequel.lit("(date > ? and name in ?)", from, tracked_pairs))
-          .reverse_order(:date).select(:name,:date,:bid,:ask).all
+          table = DB[:hst_eth_rates]
         end
+
+        all_data = table.filter(Sequel.lit(" date > ? and name in ? and HOUR(date) in ? ", from, tracked_pairs,hours))
+          .reverse_order(:date).select(:name,:date,:bid,:ask).all
         
         tracked_pairs.each do |m_name|
           
@@ -319,7 +320,7 @@ class PriceAnalz
 
           history=[]
 
-          for i in 0..4 do 
+          for i in 0..hours_back do 
               diff = prices[i][:avg]/prices[0][:avg]*100 rescue 0
               history <<  diff.to_f.round(1)
           end

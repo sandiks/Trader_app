@@ -3,14 +3,14 @@ require_relative 'db_util'
 
 class BF_SiteUtil
 
-  DB = BitfinexDB.get_db
+  BF_DB = BitfinexDB.get_db
   
 
   def self.date_now(hours_back=0); DateTime.now.new_offset(0/24.0)- hours_back/(24.0) ; end
   
   def self.config(key)
     case key
-      when :group; DB[:config].first(name:'group')[:value].to_i
+      when :group; BF_DB[:config].first(name:'group')[:value].to_i
     end
   end
   
@@ -20,13 +20,13 @@ class BF_SiteUtil
 
   def self.get_all_bid_ask
 
-    DB[:my_ticks].to_hash(:symb,[:BID,:ASK])
+    BF_DB[:my_ticks].to_hash(:symb,[:BID,:ASK])
 
   end
 
   def self.calc_max_buy(market_name)
     p market_name
-    bids = DB[:my_ticks].filter(name:market_name).select_map(:ask)
+    bids = BF_DB[:my_ticks].filter(name:market_name).select_map(:ask)
     balances = BalanceUtil.balance_table
     btc = balances["BTC"] 
     btc/bids[0] rescue 0
@@ -34,7 +34,7 @@ class BF_SiteUtil
 
   def self.calc_price_for_one_token(market_name)
     
-    ask = DB[:my_ticks].filter(name:market_name).select_map(:ask).first
+    ask = BF_DB[:my_ticks].filter(name:market_name).select_map(:ask).first
     if ask
      ask*TradeUtil.usdt_base
     else
@@ -45,7 +45,7 @@ class BF_SiteUtil
 ####
   def self.get_balance_for_site
 
-    data = DB[:wallets].filter(pid:2).all   
+    data = BF_DB[:wallets].filter(pid:2).all   
     
     rates = BF_SiteUtil.get_all_bid_ask 
     symbols=BitfinexDB.symb_hash

@@ -46,16 +46,17 @@ Tweb::App.controllers :price do
 
     from = date_now(hours)
 
-    p "---text_last_price #{mname} "
+   
     prices = PriceAnalz.last_market_prices(mname,hours)
 
     res=[]
-    res<< "<b>Orders buy volume</b>"
+    #res<< "<b>Orders buy volume</b>"
 
     prices[:data].group_by{|dd| dd[:date].day}.each do |day, prices_data|  
-      res << ""
+
+      res << "market:<b> #{mname}</b>"
       res << "******** DAY:#{day} type: #{otype}"
-      
+
       prices_data=prices_data.reverse if reverse
       
       prices_data.each do |pp| 

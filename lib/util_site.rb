@@ -27,11 +27,29 @@ class SiteUtil
 
     data = BalanceUtil.get_balance.sort_by{|k,v| v[:usdt]}
     res=[]
+
     table_headers=[]
+    
     data.each do |mname,tt|
       next if mname==base_crypto
-      table_headers<< "<th>#{mname}</th>"
-      res<< "<td  width=\"90\"><b>#{'%0.8f' % tt[:bid]} #{'%0.8f' % tt[:ask]} </b></td>"
+      res<< "<th>#{mname}</th>"
+      res<< "<tr><td><b>#{'%0.8f' % tt[:bid]} #{'%0.8f' % tt[:ask]} </b></td></tr>"
+    end
+ 
+
+    ["BTC-XRB"].each do |mname|
+
+      bid,ask = BitgrailUtil.get_bid_ask_from_tick(mname)
+      res<< "<th> Bitgrail- #{mname}</th>"
+      res<< "<tr><td><b>#{'%0.8f' % bid} #{'%0.8f' % ask} </b></td></tr>"
+    end
+
+    symbols_ids=BitfinexDB.symb_hash
+
+    ["EOSETH"].each do |symb|
+      bid,ask = BitfinexDB.get_bid_ask_from_tick(symbols_ids[symb])
+      res<< "<th> Bitfinex - #{symb}</th>"
+      res<< "<tr><td><b>#{'%0.8f' % bid} #{'%0.8f' % ask} </b></td></tr>"
     end
 
     btc_price="#{'%4.0f' % TradeUtil.usdt_base}"
@@ -42,19 +60,16 @@ class SiteUtil
     .select.with_index { |x, i| i % 5 == 0 }
     .map { |dd|  '%6.0f' % dd }.join(', ') 
 
-    upd ="upd #{DateTime.now.strftime('%k:%M:%S')} "
 
-    info = "#{upd}<br /> 
+    info = "#{DateTime.now.strftime('%k:%M:%S')}<br /> 
     #{base_crypto} price #{btc_price} <br /> 
     BTC bitfinex  #{ bf_btc_price } <br /> 
-
     USDT bal: #{'%0.2f' % usdt_sum}<br />
     #{base_crypto} bal: #{'%0.8f' % btc_sum}<br />"
 
     table = "#{info} <br />
-    <table class='forumTable' style='width:50%;'>
-    #{table_headers.join()}
-    <tr> #{res.join()} </tr>
+    <table class='forumTable' style='width:20%;'>
+    #{res.join()} 
     </table>"
 
     #upd ="#{DateTime.now.strftime('%k:%M:%S')}<br /> #{table}"

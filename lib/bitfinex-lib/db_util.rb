@@ -14,6 +14,10 @@ class BitfinexDB
   def self.symb_hash
     DB[:symbols].to_hash(:name, :symbol_id)
   end
+  
+  def self.get_bid_ask_from_tick(symb_id)
+    DB[:my_ticks].filter(symb:symb_id).select_map([:bid,:ask]).first
+  end
 
   def self.save_tick_to_db(symb_id, tt)
 

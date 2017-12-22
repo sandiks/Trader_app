@@ -24,9 +24,9 @@ Tweb::App.controllers :trade do
     @balance = BalanceUtil.get_balance_for_site 
 
     super_tracked ={
-      title: "SUPER HOT!!! SOLD!!",
-      history_price_hours: PriceAnalz.get_tracked_hours(4), 
-      markets: PriceAnalz.get_tracked_markets(2)
+      title: "SUPER HOT!!!",
+      history_price_hours: PriceAnalz.get_tracked_hours(8), 
+      markets: PriceAnalz.get_tracked_markets(8)
     }
     tracked = nil       #{title: "TRACKED", pairs:SiteUtil.get_tracked_markets(1)}
     
@@ -81,10 +81,12 @@ Tweb::App.controllers :trade do
     ## orders info
     #@bought = My_hst_orders.filter(Exchange:@pair, OrderType:'LIMIT_BUY').reverse_order(:Closed).limit(10).all
     #@selled = My_hst_orders.filter(Exchange:@pair, OrderType:'LIMIT_SELL').reverse_order(:Closed).limit(10).all
-    
-    orders_history = OrderUtil.my_hist_orders_from_db2(mname,bid)
     #orders_history = partial('order/hist_orders', :object => [@bought,@selled]) # render('order/hist_orders', layout: false)
     
+    #orders_history = OrderUtil.my_hist_orders_from_db2(mname,bid)
+    
+    @open_orders=OrderUtil.get_my_open_orders(mname)
+    orders_history = partial('order/open_orders', :object => @open_orders)
     
     data={
       currency:mname, 
@@ -123,7 +125,7 @@ Tweb::App.controllers :trade do
     res=TradeUtil.buy_curr(curr,qq,rate)
     #OrderUtil.get_my_open_orders(curr)
 
-    return "#{curr} q:#{'%0.0f' % qq} rate:#{'%0.8f' % rate} response:#{res}"
+    return "#{curr} q:#{'%0.4f' % qq} rate:#{'%0.8f' % rate} response:#{res}"
   end
 
   get '/sell_curr' do

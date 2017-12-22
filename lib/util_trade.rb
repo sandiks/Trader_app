@@ -119,7 +119,7 @@ class TradeUtil
       end
 
       #sleep 0.2
-      OrderUtil.my_hist_orders(mname)
+      #OrderUtil.my_hist_orders(mname)
 
       uuid
     end
@@ -130,14 +130,20 @@ class TradeUtil
     if config(:simulate)
       SimulatorUtil.sell_simulate(mname,q,r)
     else
-      uuid = bittrex_api.sell(mname,q,r)
       
-      DB[:my_trades].insert({pid:get_profile, ord_uuid:uuid, type:"SELL", name:mname, quantity:q, ppu:r,  bought_at: date_now(0)})
+      if true
+          
+          uuid = bittrex_api.sell(mname,q,r)
+          if uuid
+            DB[:my_trades].insert({pid:get_profile, ord_uuid:uuid, type:"SELL", name:mname, quantity:q, ppu:r,  bought_at: date_now(0)})
 
-      #sleep 0.1
-      #TradeUtil.update_curr_balance('BTC')
+            sleep 0.1
+            TradeUtil.update_curr_balance('BTC')
 
-      uuid
+            uuid
+          end
+
+      end
     end
 
   end 
@@ -206,17 +212,20 @@ class TradeUtil
       bid_ask = TradeUtil.get_bid_ask(mname)
       bid = bid_ask ? bid_ask[0] : TradeUtil.get_bid_ask_from_market(mname)[0]
 
-      p price_in_range = q*bid<0.005
+      p price_in_range = q*bid<0.02
       
       if price_in_range
         
         if config(:simulate)
           SimulatorUtil.sell_simulate(mname,q,bid)
         else
-          uuid= bittrex_api.sell(mname,q,bid)
-          update_operation_amount(mname,q)
-          if uuid
-            DB[:my_trades].insert({pid:get_profile, ord_uuid:uuid, type:"SELL", name:mname, quantity:q, ppu:bid,  bought_at: date_now(0)})
+  
+          if true
+            uuid= bittrex_api.sell(mname,q,bid)
+            update_operation_amount(mname,q)
+            if uuid
+              DB[:my_trades].insert({pid:get_profile, ord_uuid:uuid, type:"SELL", name:mname, quantity:q, ppu:bid,  bought_at: date_now(0)})
+            end
           end
 
           "---sold q=#{'%0.2f' % q}  bid=#{'%0.8f' % bid} uuid=#{uuid}"
