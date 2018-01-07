@@ -1,6 +1,6 @@
 #require 'parallel'
 require 'sequel'
-require_relative 'arr_helper'
+require_relative '../arr_helper'
 require_relative 'bittrex_api'
 
 

@@ -1,12 +1,12 @@
 Tweb::App.controllers :forum do
   
   @pid=2
-  FORUMS=[8,1,67,159]
+  FORUMS=[8,1,67]
 
   get :max_reposnses_threads do
     #system "cd '#{ForumHelper::CRAWLER_DIR}'; ruby run_for_site.rb stat_all"
 
-    data = BctReport.list_forum_threads_with_max_answers(FORUMS,8,15) ## forums, h_back, thread_size
+    data = BctReport.list_forum_threads_with_max_answers(FORUMS,12,20) ## forums, h_back, thread_size
     text =''
     data.each do |dd|  
       

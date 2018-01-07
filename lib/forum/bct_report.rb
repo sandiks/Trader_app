@@ -45,7 +45,7 @@ class BctReport
     data=[]
     max_resps_threads.each do |tid, tt|
 
-      if true
+      if false
         ranks = DB[:posts].filter( Sequel.lit("siteid=? and tid=? and addeddate > ?", SID, tid, from) )
         .order(:addeddate).select_map(:addedrank)
 
@@ -59,14 +59,16 @@ class BctReport
       lpage = (page_and_num[0]-1)*40 rescue 0      
       
       url = "https://bitcointalk.org/index.php?topic=#{tid}.#{lpage}"
-      pages_count =DB[:tpages].filter(tid:tid).reverse_order(:page).limit(10).map([:page,:postcount,:fp_date])
-      pages_count = pages_count.select { |e| e[2].to_datetime>date_now(48) }
+      
+      #pages_count =DB[:tpages].filter(tid:tid).reverse_order(:page).limit(10)
+      #.map([:page,:postcount,:fp_date]).select { |e| e[2].to_datetime>date_now(48) }
+      
       data<< { 
         tid:tid ,responses: resps_minmax[1]-resps_minmax[0], 
         url: url, pages:page_and_num[0], 
         title: threads_attr[tid][0],
         reliable: threads_attr[tid][1], 
-        tpages: pages_count.map { |e| "[#{e[0]},#{e[1]}] #{e[2].strftime("%-d(%H:%M)")}"  }.join(', ')
+        #tpages: pages_count.map { |e| "[#{e[0]},#{e[1]}] #{e[2].strftime("%-d(%H:%M)")}"  }.join(', ')
       }
     end
 

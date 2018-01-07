@@ -23,6 +23,7 @@ Tweb::App.controllers :trade do
 
     @balance = BalanceUtil.get_balance_for_site 
     @simul = BalanceUtil.get_simul_tokens 
+    @site_url = SiteUtil.get_market_ann_sites
 
     super_tracked ={
       title: "SUPER HOT!!!",
@@ -156,4 +157,10 @@ Tweb::App.controllers :trade do
     TradeUtil.delete_from_simul(pair)
     return "deleted #{pair}"
   end  
+  get '/set_new_simul_price_mark' do
+    
+    pair = params[:pair]
+    TradeUtil.new_simul_price_mark(pair)
+    return "[simul] new_price #{pair}"
+  end    
 end

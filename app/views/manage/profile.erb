@@ -22,19 +22,14 @@ $(function() {
       <tr>
         <th>N</th>
         <th>name</th>
-        <th>track/untrack</th>
+        <th>enable</th>
       </tr>
       
       <% @markets.each_with_index do |item, idx| %>
       <tr>
         <td><%=idx+1 %></td>
         <td><a href='/market/details/<%=item.name %>' ><%=item.name%></a></td>
-        <td style="text-align:center">
-          <a href='/manage/track/<%=item.name%>' ><%=(item.check==1 ? "untrack" : "track") %></a>
-        </td>
-        <td style="text-align:center">
-          <a href='/manage/set_pumped/<%=item.name%>' ><%=(item.pumped==1 ? "off pump" : "on pump") %></a>
-        </td>
+    
         <td style="text-align:center">
           <a href='/manage/enabled/<%=item.name%>' ><%=(item.enabled==1 ? "disable" : "enable") %></a>
         </td>

@@ -1,2 +1,2 @@
-class Symbols < Sequel::Model(DB_BF)
+class Symbols < Sequel::Model(BF_DB)
 end

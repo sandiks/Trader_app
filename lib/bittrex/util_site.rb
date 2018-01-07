@@ -23,33 +23,38 @@ class SiteUtil
     balances["BTC"][1]/ask rescue -1
   end 
 
+  def self.get_market_ann_sites; DB[:market_ids].to_hash(:name, :site); end
+
   def self.line_tick
 
     data = BalanceUtil.get_balance.sort_by{|k,v| v[:usdt]}
     res=[]
 
-    table_headers=[]
+    headers=[]
     
     data.each do |mname,tt|
-      next if mname==base_crypto
-      res<< "<th>#{mname}</th>"
-      res<< "<tr><td><b>#{'%0.8f' % tt[:bid]} #{'%0.8f' % tt[:ask]} </b></td></tr>"
+      headers<< ( mname==base_crypto ? "<th>#{mname} #{'%0.2f' % tt[:usdt]}</th>" : "<th>#{mname} #{'%0.2f' % tt[:usdt]}</th>")
+      if mname!=base_crypto
+        res<< "<td><b>#{'%0.8f' % tt[:bid]} #{'%0.8f' % tt[:ask]} </b></td>"
+      else
+        res<< "<td></td>"
+      end
     end
  
 
     ["BTC-XRB"].each do |mname|
 
-      bid,ask = BitgrailUtil.get_bid_ask_from_tick(mname)
-      res<< "<th> Bitgrail- #{mname}</th>"
-      res<< "<tr><td><b>#{'%0.8f' % bid} #{'%0.8f' % ask} </b></td></tr>"
+      bid,ask = BG::Util.get_all_bid_ask[mname]
+      headers<< "<th>grail- #{mname}</th>"
+      res<< "<td><b>#{'%0.8f' % bid} #{'%0.8f' % ask} </b></td>"
     end
 
     symbols_ids=BitfinexDB.symb_hash
 
-    ["EOSETH"].each do |symb|
+    ["OMGETH"].each do |symb|
       bid,ask = BitfinexDB.get_bid_ask_from_tick(symbols_ids[symb])
-      res<< "<th> Bitfinex - #{symb}</th>"
-      res<< "<tr><td><b>#{'%0.8f' % bid} #{'%0.8f' % ask} </b></td></tr>"
+      headers<< "<th>finex - #{symb}</th>"
+      res<< "<td><b>#{'%0.8f' % bid} #{'%0.8f' % ask} </b></td>"
     end
 
     btc_price="#{'%4.0f' % TradeUtil.usdt_base}"
@@ -68,8 +73,9 @@ class SiteUtil
     #{base_crypto} bal: #{'%0.8f' % btc_sum}<br />"
 
     table = "#{info} <br />
-    <table class='forumTable' style='width:20%;'>
-    #{res.join()} 
+    <table class='forumTable' style='width:60%;'>
+    #{headers.join()} 
+    <tr>#{res.join()}</tr> 
     </table>"
 
     #upd ="#{DateTime.now.strftime('%k:%M:%S')}<br /> #{table}"
@@ -95,22 +101,23 @@ class SiteUtil
     lines_tr<< 
     "<th>balance</th> 
     <th>available</th> 
-    <th>USDT bal</th> 
     <th style='width:10%;'>BID</th> 
     <th style='width:10%;'>ASK</th> 
+    <th>USDT bal</th> 
     <th style='width:7%;'>diff</th> 
     <th style='width:10%;'>pair</th>
     <th style='width:30%;'>actions</th>"
     
     data.each do |dd|
       next if dd[:usdt] ==0
-      
+      bid,ask = dd[:last_bid],dd[:last_ask]
+
       line ="" 
       line += "<td>#{'%0.4f' %dd[:balance]}</td> "
       line += "<td>#{'%0.4f' %dd[:available]}</td> "
-      line += "<td>#{'%0.2f' % (dd[:usdt]||0)}</td> "
-      line += "<td><b>#{ '%0.8f' % dd[:last_bid] }</b></td>" 
-      line += "<td><b>#{'%0.8f' % dd[:last_ask]}</b></td>"
+      line += "<td><b>#{ '%0.8f' % bid }</b></td>" 
+      line += "<td><b>#{'%0.8f (%0.1f )' % [ask, ask/bid*100]} </b></td>"
+      line += "<td>$#{'%0.0f' % (dd[:usdt]||0)}</td> "
 
       line += "<td>#{dd[:diff]}</td>" 
       line += "<td><b>#{dd[:currency]}</b></td>"
@@ -126,9 +133,10 @@ class SiteUtil
       lines_tr<<"<tr>#{line}</tr>"
     end
     lines_tr<< 
-    "<th colspan='3'></th> 
+    "<th colspan='2'></th> 
     <th>BID</th> 
-    <th>ASK</th> 
+    <th style='width:15%;'>ASK</th> 
+    <th>USDT</th> 
     <th>diff</th> 
     <th style='width:10%;'>pair</th>
     <th style='width:30%;'>actions</th>"
@@ -137,18 +145,21 @@ class SiteUtil
     simul_curr.each do |curr|
 
       bid,ask = TradeUtil.get_bid_ask_from_market(curr[:pair]) 
-      diff = (bid||0)/ curr[:ppu] *100 
+      next unless bid || ask
+      diff = bid/ curr[:ppu] *100 
       
       line ="" 
-      line += "<td colspan='3'></td>" 
-      line += "<td><b>#{ '%0.8f' % (bid||0) }</b></td>" 
-      line += "<td><b>#{ '%0.8f' % (ask||0) }</b></td>" 
+      line += "<td colspan='2'></td>" 
+      line += "<td><b>#{ '%0.8f' % bid }</b></td>" 
+      line += "<td>#{'<b> %0.8f </b>(%0.1f)' % [ask, (ask/bid*100)]} </td>" 
+      line += "<td></td>" 
       line += "<td>#{ '%0.1f' % diff  }</td>" 
       line += "<td><b>#{ curr[:pair] }</b></td>"
-      btn_delete_code = "<button class='btn_tick_table_delete_simul_pair btn_style_green' data-curr='#{curr[:pair]}'>DELETE</button>"
+      btn_delete_code = "<button class='btn_tick_table_delete_simul_pair btn_style_green' data-market='#{curr[:pair]}'>DELETE</button>"
       btn_volumes_code = "<button class='btn_orders_volume btn_style_green' data-update='1' data-market='#{curr[:pair]}'>VOLUMES</button>"
+      btn_remark_code = "<button class='btn_new_price_mark btn_style_green' data-market='#{curr[:pair]}'>NEW_PR</button>"
       
-      line += "<td> #{btn_delete_code} #{btn_volumes_code}</td>"
+      line += "<td> #{btn_delete_code} #{btn_volumes_code} #{btn_remark_code}</td>"
       line += "<td>#{curr[:buy_time].strftime("%F %k:%M ")} #{'%0.8f' % curr[:ppu]}</td>"
       lines_tr<<"<tr>#{line}</tr>"
     end

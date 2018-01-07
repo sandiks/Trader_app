@@ -1,0 +1,31 @@
+
+<div style="margin-top:20px;">
+  <div style="color:red;">
+    RANGE ORDERS <%=@pair%>- 
+  </div>
+<%
+qsum=0
+btc_sum=0
+ %>
+  <table class="forumTable" style="width:100%;">
+      <tr>
+        <th>range</th>
+        <th>buy/sell quantity</th>
+        <th>buy/sell quant diff</th>
+        <th>buy/sell btc</th>
+        <th>buy/sell btc diff</th>
+      </tr>
+      
+      <% for item in @range %>
+      <tr>
+        <td><%='%0.8f' % item[:min_range]%> - <%='%0.8f' % item[:max_range]%></td>
+        <td><%= '%0.8f' % item[:buy_quant]%> - <%= '%0.8f' % item[:sell_quant]%> </td>
+        <% qsum += item[:buy_quant]-item[:sell_quant]%>
+        <td><%='%0.8f' %  (item[:buy_quant]-item[:sell_quant])%>  | sum <%= '%0.8f' % qsum%></td>        
+        <td><%= '%0.8f' % item[:buy_btc]%> - <%= '%0.8f' % item[:sell_btc]%> </td>
+        <td><%= '%0.8f' % (item[:buy_btc]-item[:sell_btc])%>  </td>
+      </tr>
+      <% end%>
+  </table>
+
+</div>

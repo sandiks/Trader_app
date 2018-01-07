@@ -47,9 +47,9 @@ $(function(){
     <tbody>
       <tr>
         <th style="width:2%;">ID</th>
-        <th style="width:8%;">name</th>
+        <th style="width:7%;">name</th>
         <th style="width:10%;">bid-ask</th>
-        <th style="width:20%;">history</th>
+        <th style="width:15%;">history</th>
         <th style="width:7%;">[track]</th>
         <th style="width:7%;">PUMP</th>
         <th style="width:10%;">BUY/SELL</th>
@@ -71,7 +71,10 @@ $(function(){
 
         <td ><%= idx %></td>
 
-        <td style="width:10%;"><a href="<%= "/pump/show_pump/#{mname}" %>"><%=mname%>  </a>  <%= pair_balance_info%> </td>
+        <td style="width:10%;">
+          <b><%=mname%></b> 
+          <br /><%= pair_balance_info%> 
+        </td>
         
         <td>
            <%= ('<b>%0.8f %0.8f </b>' % [item[:bid]||0,item[:ask]||0]).html_safe%>
@@ -96,16 +99,16 @@ $(function(){
         </td>
 
         <td>
-          <button class="btn_buy_sell btn_style_green" data-curr="<%=mname%>">BUY-SELL <%=mname %></button>
-          <button class="btn_add_to_simul btn_style_green" data-curr="<%=item[:name]%>">to SIMUL <%=item[:name] %></button>
+          <button class="btn_buy_sell btn_style_green" data-curr="<%=mname%>">BUY-SELL</button>
+          <button class="btn_add_to_simul btn_style_green" data-curr="<%=item[:name]%>">to SIMUL</button>
           
         </td>
 
         <td>
-          <button class="btn_hours_price btn_style_blue" data-otype="bid" data-hours="48" data-market="<%=mname%>">72h prices <%=mname%></button> 
+          <button class="btn_hours_price btn_style_blue" data-otype="bid" data-hours="48" data-market="<%=mname%>">HIST PRICES 72</button> 
         </td>
 
-        <td><button class="btn_hist_orders btn_style_blue" data-market="<%=mname %>">hist <%=mname %></button></td>
+        <td><button class="btn_hist_orders btn_style_blue" data-market="<%=mname %>">HIST ORDS</button></td>
 
         
       </tr>

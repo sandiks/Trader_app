@@ -2,10 +2,13 @@ Tweb::App.controllers :manage do
   
   @pid=2
 
-  get :index do
+
+  get :profile do
     @markets = Tprofiles.filter(pid:get_profile, group:1).all
-    render 'index'
+    render 'profile'
   end
+
+
   
   get :copy_to_profile do
     copy_market_to_profile
@@ -36,9 +39,9 @@ Tweb::App.controllers :manage do
     res = dd.each_with_index.map { |e,i|  "<tr><td>#{columns[i].to_s}</td> <td>#{'%0.8f' % (e||0)}</td></tr>" }.join("")
     
     bid,ask= TradeUtil.get_bid_ask_from_market(pair)
-    amount = 8/(bid*TradeUtil.usdt_base).round(4) 
+    amount = 13/(bid*TradeUtil.usdt_base).round(4) 
 
-    return "<br /><b>#{pair} </b><br /> amount: #{'%0.8f' % amount} <br /> <table class='forumTable' style='width:30%;' >#{res}</table>"
+    return "<br /><b>#{pair} </b><br /> amount(13$): #{'%0.8f' % amount} <br /> <table class='forumTable' style='width:30%;' >#{res}</table>"
     
   end
 
@@ -51,4 +54,6 @@ Tweb::App.controllers :manage do
     return "set #{column}:#{value} for #{curr}"
 
   end
+
+
 end

@@ -134,6 +134,7 @@ def copy_market_to_market_ids
     end
   end
 end
+
 def copy_market_to_ticks
   market_names = DB[:markets].filter(Sequel.like(:name, 'ETH-%')).order(:Created).select_map([:name, :Created])
 

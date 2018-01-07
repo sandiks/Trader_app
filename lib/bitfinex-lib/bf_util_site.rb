@@ -43,13 +43,17 @@ class BF_SiteUtil
   end 
 
 ####
+  def self.base_curr
+     "ETH"
+  end
+  
   def self.get_balance_for_site
 
     data = BF_DB[:wallets].filter(pid:2).all   
     
     rates = BF_SiteUtil.get_all_bid_ask 
     symbols=BitfinexDB.symb_hash
-    usd_bid = rates[symbols['ETHUSD']][0]
+    usd_bid = rates[symbols["#{base_curr}USD"]][0]
 
     res=[]     
     data.each do |dd|
@@ -59,11 +63,13 @@ class BF_SiteUtil
       balance=dd[:balance]
       bid=ask=1
       if curr!=base_crypto
-        sid = symbols["#{curr}ETH"]
+        sid = symbols["#{curr}#{base_curr}"]
         bid,ask =rates[sid] 
       end
+      next if balance==0
+      usd_bal = balance*bid*usd_bid rescue 0
       p " curr #{curr} bal #{balance} usd_bid #{usd_bid} bid #{bid}"
-      res<<{currency:curr,bid:bid,ask:ask,balance:balance,usd_balance:balance*bid*usd_bid}
+      res<<{currency:curr,bid:bid,ask:ask,balance:balance,usd_balance:usd_bal}
     end
     res
   end
@@ -72,7 +78,7 @@ class BF_SiteUtil
  
    
     lines_tr=[]
-    lines_tr<< "<th>BID</th><th>ASK</th><th>QUANT</th><th>USDT bal</th><th>diff</th><th>pair</th>"
+    lines_tr<< "<th>BID</th><th>ASK</th><th>balance</th><th>USDT bal</th><th>diff</th><th>pair</th>"
     symbols=BitfinexDB.symb_hash
     rates = BF_SiteUtil.get_all_bid_ask 
     
@@ -80,6 +86,7 @@ class BF_SiteUtil
     btc_bid = rates[symbols["BTCUSD"]][0]
 
     data = get_balance_for_site
+    usd_bal =0
     data.each do |dd|
 
       curr=dd[:currency]
@@ -87,10 +94,11 @@ class BF_SiteUtil
       bid,ask =rates[symbols["t#{curr}#{base_crypto}"]] 
 
       line ="" 
-      line += "<td><b>#{ '%0.8f' % dd[:bid] }</b></td>" 
-      line += "<td><b>#{'%0.8f' % dd[:ask]}</b></td>"
+      line += "<td><b>#{ '%0.8f' % (dd[:bid]||0) }</b></td>" 
+      line += "<td><b>#{'%0.8f' % (dd[:ask]||0)}</b></td>"
       line += "<td>#{'%0.8f' % balance}</td> "
       line += "<td>#{'%0.2f' % dd[:usd_balance] }</td> "
+      usd_bal+= dd[:usd_balance]
 
       line += "<td>diff</td>" 
       line += "<td><b>#{curr}</b></td>"
@@ -103,7 +111,7 @@ class BF_SiteUtil
     "#{upd}<br /> 
     ETH_USD price #{'%0.2f' % eth_bid} <br /> 
     BTC_USD price #{'%0.2f' % btc_bid} <br /> 
-    USDT bal: #{'%0.2f' % 0}<br />
+    USDT bal: #{'%0.2f' % usd_bal}<br />
     <table class='forumTable' style='width:50%;'>#{lines_tr.join()}</table>"
 
   end

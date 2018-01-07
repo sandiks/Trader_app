@@ -52,4 +52,34 @@ Tweb::App.controllers :market do
     data = data.map { |xx| {dd: xx[:date].day, hh:xx[:date].hour, mm:xx[:date].min, bid: xx[:bid] } }.to_json
   end
 
+
+  get :market_info, :provides => :json do
+
+    mname = params[:market]
+
+    columns = [:name, :BaseVolume, :Created]
+    
+    dd = DB[:markets].filter(name:mname).select_map(columns).first
+    p market_site = DB[:market_ids].first(name:mname)[:site]
+    
+    res = dd.each_with_index.map { |e,i|  "<tr><td>#{columns[i].to_s}</td> <td>#{e}</td></tr>" }.join("")
+
+    {
+      info: "<table class='forumTable' style='width:80%;' >#{res}</table>", 
+      site: market_site
+    
+    }.to_json
+
+  end
+
+
+  post :set_market_column do
+    p mname = params[:mname]
+    p column = params[:column]
+    p value = params[:value]
+
+    DB[:market_ids].filter(name:mname).update(column.to_sym => value)
+    return "set #{column}:#{value} for #{mname}"
+
+  end  
 end

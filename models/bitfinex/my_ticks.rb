@@ -1,2 +1,2 @@
-class My_ticks < Sequel::Model(DB_BF)
+class My_ticks < Sequel::Model(BF_DB)
 end

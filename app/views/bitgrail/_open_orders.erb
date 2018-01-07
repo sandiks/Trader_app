@@ -1,0 +1,33 @@
+
+<div style="margin-top:20px;">
+  <div style="color:red;">
+    OPEN ORDERS 
+  </div>
+  <table class="forumTable" style="width:80%;">
+    <tbody>
+      <tr>
+        <th>uuid</th>
+        <th>name</th>
+        <th>type</th>
+        <th>quantity</th>
+        <th>limit</th>
+        <th>**close</th>
+      </tr>
+      
+      <% for item in @open_orders %>
+      <tr>
+        <td><%=item[:ord_uuid]%></td>
+        <td><%=item[:name]%></td>
+        <td><%=item[:type]%></td>
+        <td><%='%0.8f' % item[:q]%></td>
+        <td><%='%0.8f' % item[:limit]%></td>
+
+        <td><button class="btn_close_order" data-ord-uuid="<%=item[:ord_uuid] %>">CLOSE</button>
+        </td>
+
+      </tr>
+      <% end%>
+    </tbody>
+  </table>
+
+</div>

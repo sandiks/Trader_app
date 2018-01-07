@@ -41,7 +41,7 @@ Tweb::App.controllers :bitfinex do
     qq = params[:q].to_f
     rate = BigDecimal.new(params[:r])
 
-    pair="EOSETH"
+    #pair="EOSETH"
 
     res=BitfinexBot.buy_pair(pair,qq,rate)
     
@@ -54,7 +54,7 @@ Tweb::App.controllers :bitfinex do
     qq = params[:q].to_i
     rate = BigDecimal.new(params[:r])
 
-    pair="EOSETH"
+    #pair="EOSETH"
 
     res=BitfinexBot.sell_pair(pair,qq,rate)
 

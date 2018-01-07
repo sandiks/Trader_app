@@ -30,3 +30,7 @@
     display: inline-block;
     font-size: 15px;
 } 
+
+.main-header-logo3 {
+    max-width: 300px;
+}

@@ -59,11 +59,11 @@ function lineTick() {
     $.get('/trade/line_tick', function(data) {
         $('#line_tick').html(data);
     });
-    setTimeout(lineTick,25000);
+    setTimeout(lineTick,20000);
 }
 
 function bigTick() {
-    setTimeout(bigTick,30000);
+    setTimeout(bigTick,80000);
 
     $.get('/trade/big_tick', function(data) {
         $('#tick').html(data);
@@ -122,9 +122,17 @@ function bind_tick_table_buy_sell_rate_buttons(){
 function bind_tick_table_simul_buttons(){
 
     $('.btn_tick_table_delete_simul_pair').click(function() {
-      var pair = $(this).data('curr');
+      var pair = $(this).data('market');
 
       $.get('/trade/delete_from_simul/',{pair:pair}, function(data) {
+          alert(data);
+      });
+    });
+
+    $('.btn_new_price_mark').click(function() {
+      var pair = $(this).data('market');
+
+      $.get('/trade/set_new_simul_price_mark/',{pair:pair}, function(data) {
           alert(data);
       });
     });
@@ -146,25 +154,32 @@ function bind_tick_table_simul_buttons(){
     line_tick
 </div>
 
+<div id="tick" style="color:green;margin: 20px;20px;0px;0px">
+    tick
+</div>
+
 <div style="margin-left:20px;">
 
-  <table class="forumTable" style="width:80%;">
+  <table class="forumTable" style="width:90%;">
     <tbody>
       <tr>
-        <th style='width:10%;'>market</th>
-        <th style='width:35%;'>price history <%=PriceAnalz.time_grouped_by_20min %></th>
+        <th style='width:7%;'>market</th>
+        <th style='width:25%;'>price history <%=PriceAnalz.time_grouped_by_20min %></th>
 
-        <th>[BUY/SELL]</th>
+        <th style='width:22%;'>[BUY/SELL]</th>
         <th style='width:25%;'>SIMUL</th>
-        <th>URL</th>
+        <th style='width:7%;'>market</th>
+
+        <th style='width:5%;'>URL</th>
       </tr>
       
       <% for item in @simul 
       mname = item[:pair] 
+      
       %>
       <tr>
         <td><b><%=mname%></b></td>
-        <td><%= item[:price_history].map { |dd| '%0.1f' % dd }.join(" ").html_safe %></td>
+        <td><%= item[:price_history].map { |dd| '%0.0f' % dd }.join(" ").html_safe %></td>
 
         <td>
           <button class="btn_buy_sell_with_order_book btn_style_green" data-curr="<%=mname%>" >buy/sell <%= mname %></button>
@@ -172,12 +187,15 @@ function bind_tick_table_simul_buttons(){
         </td>
 
         <td>
-          <button class="btn_open_orders btn_style_blue" data-market="<%=mname%>">OPENS <%= mname %></button>
-            <button class="btn_hist_orders btn_style_blue" data-market="<%=mname%>">HIST <%= mname %></button>
-            <button class="btn_hours_price btn_style_blue" data-otype="bid" data-hours="5" data-market="<%=mname%>">prices 96h <%=item[:currency]%></button> 
+            <button class="btn_open_orders btn_style_blue" data-market="<%=mname%>">OPENS_ORDS</button>
+            <button class="btn_hist_orders btn_style_blue" data-market="<%=mname%>">HIST_ORDS</button>
+            <button class="btn_hours_price btn_style_blue" data-market="<%=mname%>" data-otype="bid" data-hours="24" >PRICES 24h</button> 
 
         </td>
+        <td><b><%=mname%></b></td>
         
+        <td><a href="<%= @site_url[mname] %>" target='blank'>ANN</a></td>
+
         <td><a href="https://bittrex.com/Market/Index?MarketName=<%= mname %>" target='blank'>Bittrex</a></td>
         
       </tr>
@@ -188,9 +206,6 @@ function bind_tick_table_simul_buttons(){
 </div>  
 <% partial 'super_buy_sell_area' %>
 
-<div id="tick" style="color:green;margin: 20px;20px;0px;0px">
-    tick
-</div>
 
 <div style="margin-left:20px;">
   
@@ -222,7 +237,7 @@ function bind_tick_table_simul_buttons(){
             <th>SIMUL</th>
             <th>PRICE HIST</th>
             <th>ORDERS HIST</th>
-            <th style='width:20%;'>PUMP LEVEL</th>
+            <th style='width:19%;'>PUMP LEVEL</th>
             <th>URL</th>
           </tr>
           
@@ -232,23 +247,25 @@ function bind_tick_table_simul_buttons(){
 
             <td><%='%0.3f' % item[:usdt_price]%></td>
       
-            <td><%= item[:price_history].map { |dd| '%0.1f' % dd }.join(" ").html_safe %></td>
+            <td><%= item[:price_history].map { |dd| '%0.0f' % dd }.join(" ").html_safe %></td>
     
             <td><button class="btn_buy_sell_with_order_book btn_style_green" data-curr="<%=mname%>">buy <%=mname.sub('BTC-','')%></button> </td>
 
             <td>
-              <button class="btn_add_to_simul btn_style_green" data-curr="<%=mname%>">simul <%=mname.sub('BTC-','') %></button>
+              <button class="btn_add_to_simul btn_style_green" data-curr="<%=mname%>">TO SIMUL</button>
             </td>
 
-            <td><button class="btn_hours_price btn_style_blue" data-otype="bid" data-hours="24" data-market="<%=mname %>">72h <%=mname %></button> </td>
+            <td><button class="btn_hours_price btn_style_blue" data-otype="bid" data-hours="96" data-market="<%=mname %>">PRICE 96h</button> </td>
 
-            <td><button class="btn_hist_orders btn_style_blue" data-market="<%=mname %>">hist <%=mname %></button></td>
+            <td><button class="btn_hist_orders btn_style_blue" data-market="<%=mname %>">HIST ORDERS</button></td>
     
             <td style="text-align:center">
               <button class="btn_set_pump_level btn_style_red" data-level='0' data-curr="<%=mname%>">pump 0</button>
               <button class="btn_set_pump_level btn_style_red" data-level='1' data-curr="<%=mname%>">pump 1</button>
               <button class="btn_set_pump_level btn_style_red" data-level='2' data-curr="<%=mname%>">pump 2</button>
-            </td>            
+            </td>  
+            <td><a href="<%= @site_url[mname] %>" target='blank'>ANN</a></td>
+
             <td><a href="https://bittrex.com/Market/Index?MarketName=<%= mname %>" target='blank'>Bittrex</a></td>
             
           </tr>

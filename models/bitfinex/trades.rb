@@ -1,3 +1,3 @@
-class Trades < Sequel::Model(DB_BF)
+class Trades < Sequel::Model(BF_DB)
 end
 

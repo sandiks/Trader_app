@@ -1,0 +1,52 @@
+<div style="margin-top:20px;">
+
+    <table style="width:90%;">
+      <tr>
+        <td>BUY  <%=@pair%>
+            <table class="forumTable" style="width:100%;">
+              <tbody>
+                <tr>
+                  <th>date</th>
+                  <th>amount</th>
+                  <th>price</th>
+                </tr>
+                
+                <% for item in @bought %>
+                <tr>
+                  <td><%=item[:date].strftime("%F %k:%M ")%></td>
+                  <td><%= '%0.4f' % item[:amount]%></td>
+                  <td><%= '%0.8f' %item[:price]%></td>
+                </tr>
+                <% end%>
+                
+              </tbody>
+            </table>
+          
+        </td>
+        
+        <td style="width:10%;"></td>
+
+        <td>SELL  <%=@pair%>
+            <table class="forumTable" style="width:100%;">
+              <tbody>
+                <tr>
+                  <th>date</th>
+                  <th>amount</th>
+                  <th>price</th>
+                </tr>
+                
+                <% for item in @sold %>
+                <tr>
+                  <td><%=item[:date].strftime("%F %k:%M ")%></td>
+                  <td><%= '%0.4f' % item[:amount]%></td>
+                  <td><%= '%0.8f' %item[:price]%></td>
+                </tr>
+                <% end%>
+              </tbody>
+            </table>
+          
+        </td>
+      </tr>
+    </table>
+
+</div>

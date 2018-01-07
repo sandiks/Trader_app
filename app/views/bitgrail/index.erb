@@ -1,0 +1,129 @@
+<%= partial 'buy_sell_dialog' %>
+<%= partial 'orders_dialog' %>
+
+<script type="text/javascript">
+
+$(function() {
+    bigTick();
+    bind_fast_buy_sell_buttons();
+
+    $('#btn_refresh_balance').click(function() {
+      $.get('/bitgrail/refresh_balance', function(data) {
+          //$('#tick').html(data);
+          //location.reload();
+      });
+    });    
+
+    $('#btn_load_hist_trades').click(function() {
+      if(!window.confirm( 'Are you sure?' )){
+            return
+      }
+
+      $.get('/bitgrail/load_hist_trades', function(data) {
+          alert(data);
+      });
+    }); 
+    
+});
+
+function bigTick() {
+    setTimeout(bigTick,6000);
+
+    $.get('/bitgrail/table_tick', function(data) {
+        $('#tick').html(data);
+        bind_tick_table_delete_simul_button();
+    });
+}
+
+function bind_fast_buy_sell_buttons(){
+
+  $('.btn_tick_table_buy').click(function(ev) {
+
+      var curr = $(this).data('curr');
+      var q = $(this).prev().val();
+      
+      if( !window.confirm('are you sure?' ) ){
+        return
+      }
+      else{
+        $.get("/bitgrail/fast_buy_curr",{curr:curr,quant:q},
+            function(data) {
+              alert(data);
+        });            
+      }
+
+  });   
+
+  $('.btn_tick_table_sell').click(function() {
+      var curr = $(this).data('curr');
+      var q = $(this).prev().val();
+      
+      if( !window.confirm('are you sure?' ) ){
+        return
+      }
+      else{
+        $.get("/bitgrail/fast_sell_curr",{curr:curr,quant:q},
+            function(data) {
+              alert(data);
+        });            
+      }
+    
+  });        
+}
+
+</script>
+
+<div style="margin-left:20px;">
+
+  <button id='btn_refresh_balance' class="btn_style_red"> REFRESH BALANCE</button>
+  <button id='btn_load_hist_trades' class="btn_style_red"> LOAD HIST TRADES</button>
+  <button class="btn_open_orders btn_style_red" data-market="all">ALL OPENED_ORDERS</button>
+</div>
+
+
+
+<div id="tick" style="color:green;margin: 20px;20px;0px;0px">
+    tick
+</div>
+
+<div style="margin-left:20px;">
+
+
+  <div style="color:red;">
+    TRADE,  <%= get_trading_mode %>
+  </div>
+  
+  <div id="line_tick" style="color:green;margin-bottom: 20px;">      
+  </div>  
+ 
+<div style="margin-left:20px;">
+  <table class="forumTable" style="width:70%;">
+      <tr>
+        <th style='width:10%;'>pair</th>
+        <th style='width:10%;'>bid</th>
+        <th style='width:10%;'>ask</th>
+        <th style='width:25%;'>FAST BUY-SELL</th>
+        <th>BUY-SELL with orders</th>
+      </tr>    
+
+      <% @pairs.each do |symb, bid_ask|
+      %> 
+        <tr> 
+          <td><%= symb%> </td>
+          <td><%= '%0.8f' % bid_ask[0] %></td>
+          <td><%= '%0.8f' % bid_ask[1] %></td>
+              
+          <td> 
+            <button class='btn_tick_table_buy btn_style_green' data-curr='<%= symb%>'> *BUY* </button>
+            <input type='text' name='q' size='5' value='<%= '%0.0f' % BG::Util.last_buy_trade(symb)[:amount]%>'>
+            <button class='btn_tick_table_sell btn_style_green' data-curr='<%= symb%>'> *SELL* </button>
+          </td>
+          <td>
+            <button class="btn_buy_sell btn_style_green" data-curr="<%= symb %>" >buy/sell <%= symb %></button>
+            <button class="btn_hist_orders btn_style_blue" data-market="<%=symb%>">HIST_TRADES <%= symb %></button>            
+          </td>
+        </tr>
+      <% end%>
+ </table>
+</div>
+</div>

@@ -35,4 +35,8 @@ end
 # Mounts the core application for this project
 
 Padrino.mount('Tweb::Bctalk', :app_file => Padrino.root('bctalk/app.rb')).to('/bctalk')
+
+Padrino.mount('Tweb::Coinexch', :app_file => Padrino.root('coinexch/app.rb')).to('/coinexch')
+
+Padrino.mount('Tweb::Cryptopia', :app_file => Padrino.root('cryptopia/app.rb')).to('/cryptopia')
 Padrino.mount('Tweb::App', :app_file => Padrino.root('app/app.rb')).to('/')

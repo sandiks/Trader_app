@@ -1,3 +1,5 @@
+<%= partial 'market_info_dialog' %>
+
 <div style="margin-top:20px;">
   <div style="color:red;">
     Market
@@ -19,7 +21,9 @@
         <td><%=item.OpenBuyOrders%></td>
         <td><%=item.OpenSellOrders%></td>
         <td><%= item.Created.strftime("%F %k:%M ")%></td>
-        <td><%= item.Created.strftime("%F %k:%M ")%></td>
+        <td>
+            <button class="btn_show_market_info btn_style_green" data-market="<%=item.name%>">INFO</button>
+        </td>
         
       </tr>
       <% end unless @pid%>

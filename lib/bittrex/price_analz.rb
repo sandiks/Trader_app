@@ -293,8 +293,8 @@ class PriceAnalz
      res =[]
      
      12.times do
-      res<<"#{now.hour}:#{(now.min/10)*10}"
-      now = now- 1/144.0
+      res<<"#{now.hour}:#{(now.min/20)*20}"
+      now = now- 1/(24*3.0)
      end
 
      res.join(', ')
@@ -303,7 +303,7 @@ class PriceAnalz
   def self.get_markets_history_prices(markets_list) ##used -- controllers/trade.rb:
     
         tracked={}    
-        from = date_now(2)
+        from = date_now(6)
     
         usd_btc_bid = TradeUtil.usdt_base
     
@@ -321,22 +321,27 @@ class PriceAnalz
           currency = m_name.sub('BTC-','')
     
           data = all_data.select{|dd|dd[:name] == m_name }
+          
+          if data.size>0
     
-          last_bid=data.first[:bid]
-          last_ask=data.first[:ask]
+            last_bid=data.first[:bid]
+            last_ask=data.first[:ask]
+      
+            prices = data.group_by{|dd| [dd[:date].hour, dd[:date].min/20]}
+              .map { |k,vv| { time: k, avg: vv.map { |x|  x[:bid]}.mean } }
     
-          prices = data.group_by{|dd| [dd[:date].hour, dd[:date].min/10]}
-            .map { |k,vv| { time: k, avg: vv.map { |x|  x[:bid]}.mean } }
-  
-          usdt_price = usd_btc_bid*last_bid  
-          history=[]
+            usdt_price = usd_btc_bid*last_bid  
+            history=[]
 
-          for i in 0..prices.size-1 do 
-              diff = prices[i][:avg]/prices[0][:avg]*100 rescue 0
-              history <<  diff
+            for i in 0..prices.size-1 do 
+                diff = prices[i][:avg]/prices[0][:avg]*100 rescue 0
+                history <<  diff
+            end
+            
+            tracked[m_name]= {name:m_name, usdt_price: usdt_price, last_bid:last_bid, last_ask:last_ask, price_history:history } 
+
           end
     
-          tracked[m_name]= {name:m_name, usdt_price: usdt_price, last_bid:last_bid, last_ask:last_ask, price_history:history } 
         
         end
 

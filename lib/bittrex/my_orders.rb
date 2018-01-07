@@ -1,5 +1,5 @@
 require 'sequel'
-require_relative 'arr_helper'
+require_relative '../arr_helper'
 
 
 #PID=2

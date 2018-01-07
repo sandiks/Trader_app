@@ -45,8 +45,25 @@ class BitfinexDB
       end
 
     end
-
   end
+  
+  def self.save_mytrades(data) #need show open orders
+    
+    DB.transaction do
+      #DB.run("truncate table mytrades")
+      exist=DB[:mytrades].select_map(:tid)
+      
+      data.each do |tr|
+        if !exist.include?(tr['tid'].to_i)
+          
+          tr['timestamp']=Time.at( tr['timestamp'].to_i )  
+          DB[:mytrades].insert(tr)
+        end
+      end
+
+    end
+
+  end  
 
   def self.save_wallet(wallet) #need show open orders
 

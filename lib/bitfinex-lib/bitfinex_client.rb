@@ -2,8 +2,9 @@ require 'dotenv'
 require 'bitfinex-rb'
 require 'rufus-scheduler'
 
-require_relative 'bitfinex-lib/db_util'
+require_relative 'db_util'
 Dotenv.load('.env')
+
 
 class BitfinexBot
 
@@ -35,4 +36,14 @@ class BitfinexBot
     client.new_order(pair, q, "market", "sell", r)
   end
 
+  def self.history_trades(pair)
+
+    client = Bitfinex::Client.new
+    pp =pair.sub('t','')
+    trades = client.mytrades(pair)
+    BitfinexDB.save_mytrades(trades)
+  end
+
 end
+
+#p BitfinexBot.history_trades("GNTETH")

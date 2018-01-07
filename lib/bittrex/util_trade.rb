@@ -103,15 +103,13 @@ class TradeUtil
 
   def self.buy_curr(mname, q, r)
     mname = "BTC-#{mname}" if !mname.start_with?("BTC-") 
-    
-    update_operation_amount(mname,q)
-    
+        
     if config(:simulate)
       p "simulate"
       SimulatorUtil.buy_simulate(mname,q,r)
     else
       uuid = bittrex_api.buy(mname,q,r)
-
+      #update_operation_amount(mname,q)
       
       if uuid
         DB[:my_trades].insert({pid:get_profile, ord_uuid:uuid, type:"BUY", name:mname, quantity:q, ppu:r,  bought_at: date_now(0)})
@@ -120,7 +118,6 @@ class TradeUtil
 
       #sleep 0.2
       #OrderUtil.my_hist_orders(mname)
-
       uuid
     end
   end 
@@ -173,7 +170,7 @@ class TradeUtil
           p uuid =  bittrex_api.buy(mname, q, ask)
           p "----------fast_buy_curr #{mname} q #{'%0.8f' % q} ask #{'%0.8f' % ask } uuid #{uuid}"
 
-          update_operation_amount(mname,q)
+          #update_operation_amount(mname,q)
           #sleep 0.2
           #TradeUtil.update_curr_balance(mname.sub('BTC-',''))
 
@@ -222,7 +219,7 @@ class TradeUtil
   
           if true
             uuid= bittrex_api.sell(mname,q,bid)
-            update_operation_amount(mname,q)
+            #update_operation_amount(mname,q)
             if uuid
               DB[:my_trades].insert({pid:get_profile, ord_uuid:uuid, type:"SELL", name:mname, quantity:q, ppu:bid,  bought_at: date_now(0)})
             end
@@ -256,6 +253,14 @@ class TradeUtil
     DB[:simul_trades].insert({pid:get_profile,pair:mname, quantity:q, ppu:ask, buy_time: date_now(0)})
     DB[:tprofiles].where(pid:get_profile, name: mname).update(pumped:2)
   end
+
+  def self.new_simul_price_mark(mname)
+    
+    ask = TradeUtil.get_bid_ask(mname)[1] rescue 0
+    DB[:simul_trades].filter(pid:get_profile,pair:mname)
+    .update({ppu:ask, buy_time: date_now(0)})
+  end
+
 
   def self.delete_from_simul(mname)
     DB[:simul_trades].filter(pid:get_profile,pair:mname).delete

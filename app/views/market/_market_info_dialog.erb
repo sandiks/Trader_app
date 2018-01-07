@@ -1,0 +1,72 @@
+<script>
+$(function(){
+  
+  $("#minfo_dialog").dialog({
+    autoOpen: false,
+    width: 650,
+    height: 400,
+    buttons: {
+        "Close": function () {
+            $(this).dialog("close")
+        }
+    }   
+  });
+
+  $('.btn_show_market_info').click(function() {
+  
+    var market = $(this).data('market');
+
+    $("#minfo_dialog").dialog( "option","title", "market info "+ market );
+      
+      $('input:hidden[name="mname"]').val(market);
+      $.get("/market/market_info/",{market:market},
+          function(data) {
+            
+            $("#market_info").html(data.info);
+            $('input:text[name="site"]').val(data.site);
+            bind_market_btn();
+      });
+
+    $("#minfo_dialog").dialog("open");
+
+  });
+
+});  
+
+function bind_market_btn(){
+
+    $('.btn_set_market_column').click(function() {
+
+      var mname = $('input:hidden[name="mname"]').val();
+      
+      var column = $(this).data('column');
+      var value = $('input:text[name="'+column+'"]').val();
+
+      $.post("/market/set_market_column", {mname: mname, column:column, value:value},
+          function(data) {
+            alert(data);
+      });
+    });
+ 
+}
+
+</script>
+
+<div id="minfo_dialog" title="" style="margin:20px;20px;20px;20px;">
+
+  <div id="market_info"></div>
+
+  <div style="margin-top: 20px;">
+    <input type="hidden" name="mname" value="">
+
+     <div style="margin-top: 15px;">
+      <%= text_field_tag :site,  size: 60 %>
+      <br/>
+
+      <button class="btn_set_market_column btn_style_green"  data-column="site">set site</button>
+     </div>
+
+
+  </div>
+
+</div>
