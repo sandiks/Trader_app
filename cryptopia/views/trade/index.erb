@@ -31,7 +31,15 @@ $(function() {
           alert(data);
       });
     }); 
-    
+
+    $('.btn_add_to_simul').click(function() {
+      var mid = $(this).data('mid');
+
+      $.get('/cryptopia/trade/add_to_simul/',{mid:mid}, function(data) {
+          alert(data);
+      });
+    });   
+        
 });
 
 function bigTick() {
@@ -39,9 +47,43 @@ function bigTick() {
 
     $.get('/cryptopia/trade/table_tick', function(data) {
         $('#tick').html(data);
+        bind_tick_table_rebalance();
+
     });
 }
 
+function bind_tick_table_rebalance(){
+
+  $('.btn_tick_table_rebalance').click(function() {
+      var curr = $(this).data('curr');
+      var q = $(this).prev().val();
+      
+      $.get("/cryptopia/trade/rebalance",{curr:curr,quant:q},
+          function(data) {
+            alert(data);
+      });            
+
+  });  
+  
+  $('.btn_tick_table_simul_delete').click(function() {
+      var mid = $(this).data('mid');
+      
+      $.get("/cryptopia/trade/delete_from_simul",{pair:mid},
+          function(data) {
+            alert(data);
+      });            
+
+  });      
+  $('.btn_tick_table_update_rate').click(function() {
+      var mid = $(this).data('mid');
+      
+      $.get("/cryptopia/trade/currency_tick",{pair:mid},
+          function(data) {
+            alert(data);
+      });            
+
+  });   
+}
 
 </script>
 
@@ -70,15 +112,16 @@ function bigTick() {
   </div>
 
   <div style="margin-left:20px;">
-    <table class="forumTable" style="width:70%;">
+    <table class="forumTable" style="width:80%;">
         <tr>
-          <th style='width:10%;'>market id</th>
-          <th style='width:10%;'>name</th>
-          <th style='width:50%;'>hist prices</th>
-          <th>hist prices</th>
+          <th style='width:5%;'>market id</th>
+          <th style='width:8%;'>name</th>
+          <th style='width:40%;'>hist prices</th>
+          <th style='width:12%;'>hist prices</th>
+          <th style='width:12%;'>SIMUL</th>
           <th style='width:25%;'>pump</th>
           <th style='width:15%;'>URL</th>
-        </tr>    
+        </tr>       
 
         <% @markets.each do |mm|
           mid = mm[:mid]
@@ -89,8 +132,11 @@ function bigTick() {
             <td><%= mname %> </td>
             <td> <%= mm[:hist_prices].html_safe %></td>
             <td>
-              <button class="btn_hours_price btn_style_blue" data-otype="ask" data-hours="36" data-market="<%=mname %>" data-mid="<%=mid %>">PRICE 36 <%= mname %></button> </td>
-              
+              <button class="btn_hours_price btn_style_blue" data-otype="ask" data-hours="36" data-market="<%=mname %>" data-mid="<%=mid %>">PRICE 36 <%= mname %></button> 
+            </td>
+            <td>
+              <button class="btn_add_to_simul btn_style_green" data-mid="<%=mid%>">TO SIMUL</button>
+            </td>                
             <td style="text-align:center">
               <button class="btn_set_pump_level btn_style_red" data-level='0' data-mid="<%=mid%>">pump 0</button>
               <button class="btn_set_pump_level btn_style_red" data-level='1' data-mid="<%=mid%>">pump 1</button>

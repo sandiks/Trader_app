@@ -32,13 +32,13 @@ module CoinExchange
 
     def self.get_balance_for_site
 
-      data = DB[:wallets].all   
       
       ticks = CoinExchange::BalanceUtil.get_all_bid_ask 
       usd_bid = CoinExchange::BalanceUtil.btc_usd[:bid]
 
-      name_mid= CoinExchange::BalanceUtil.symb_hash('BTC')
+      name_mid= CoinExchange::BalanceUtil.name_to_market_id('BTC')
 
+      data = DB[:wallets].all   
       res=[]     
       data.each do |dd|
 
@@ -47,18 +47,20 @@ module CoinExchange
         balance=dd[:balance]
         next if balance==0
 
-        bid=ask=1
+        bid = ask = 1
+        mid = name_mid[curr]
         if curr!="BTC"
-          bid,ask =ticks[name_mid[curr]] 
+          bid,ask =ticks[mid] 
         end
 
-        #bid = 0.00000001 unless bid
-        next unless bid
+        bid = 0.00000001 unless bid
+        next unless balance
 
-        btc_bal = balance*bid rescue 0
+        btc_bal = balance*bid 
         usd_bal = btc_bal*usd_bid 
+        #next unless usd_bal<5
         #p " curr #{curr} bal #{balance} usd_bid #{usd_bid} bid #{bid}"
-        res<<{currency:curr, bid:bid||0, ask:ask||0, last_price:dd[:last_price], balance:balance, btc_balance:btc_bal, 
+        res<<{mid:mid ,currency:curr, bid:bid||0, ask:ask||0, last_price:dd[:last_price], balance:balance, btc_balance:btc_bal, 
           usd_balance:usd_bal}
       end
       res.sort_by{|x| x[:btc_balance]}
@@ -69,7 +71,6 @@ module CoinExchange
       ticks = CoinExchange::BalanceUtil.get_all_bid_ask 
 
       lines_tr=[]
-      lines_tr<< "<th>pair</th><th>BID</th><th>ASK</th><th>diff</th>"
 
       simul.each do |pair|
         mid = pair[:mid].to_i
@@ -78,18 +79,39 @@ module CoinExchange
         bid,ask =1,1 unless bid 
 
         name= CoinExchange::BalanceUtil.marketId_to_name(mid)
+        next unless name  
         line ="" 
+        line += "<td style='width:8%;'>#{mid}</td>"
         line += "<td style='width:15%;'><b>#{name}</b></td>"
 
-        line += "<td><b>#{ '%0.8f' % bid }</b></td>" 
         line += "<td><b>#{'%0.8f' % ask}</b></td>"
+        line += "<td><b>#{ '%0.8f' % bid }</b></td>" 
 
-        diff = last.nil? ? 100 : (bid/last*100)
-        line += "<td>#{'%0.1f' % diff }</td>"  
+        diff = last.nil? ? 100 : (ask/last*100)
+        diff_str=""
+        if diff>120
+          diff_str="<sapn style='color:red;'>#{'%0.1f' % diff}</span>"
+        else
+         diff_str="#{'%0.1f' % diff}"
+        end 
+
+        line += "<td>#{diff_str}</td>" 
+        line += "<td><a href='https://www.coinexchange.io/market/#{name}/BTC' target='blank'>URL</a></td>"   
+        
+        btn_delete = "<button class='btn_tick_table_simul_delete' data-mid='#{mid}'> del </button>"
+        btn_update_rate = "<button class='btn_tick_table_update_rate' data-mid='#{mid}'> rate </button>"
+        line += "<td>#{btn_delete} #{btn_update_rate}</td>"
+
       
-        lines_tr<<"<tr>#{line}</tr>"
+        lines_tr<<{tr: "<tr>#{line}</tr>", diff: diff}
+
       end
-      "<table class='forumTable' style='width:40%;'>#{lines_tr.join()}</table>"
+
+      sorted_lines=[]
+      sorted_lines<< "<th>mid</th><th>pair</th><th>ASK</th><th>BID</th><th>diff</th><th>URL</th><th>del</th>"
+      sorted_lines += lines_tr.sort_by{|xx| -xx[:diff]}.map{|xx| xx[:tr]}
+
+      "<table class='forumTable' style='width:40%;'>#{sorted_lines.join()}</table>"
 
     end
     
@@ -97,7 +119,6 @@ module CoinExchange
    
      
       lines_tr=[]
-      lines_tr<< "<th>pair</th><th>BID</th><th>ASK</th><th>balance</th><th>BTC bal</th><th>USDT bal</th><th>diff</th>"
       bf_symbols=BitfinexDB.symb_hash
       bf_rates = BF_SiteUtil.get_all_bid_ask 
       
@@ -111,6 +132,7 @@ module CoinExchange
       data.each do |dd|
 
         curr=dd[:currency]
+        mid=dd[:mid]
         balance=dd[:balance]
 
         bid,ask =dd[:bid],dd[:ask] 
@@ -118,10 +140,11 @@ module CoinExchange
         usd_balance =dd[:usd_balance]
 
         line ="" 
-        line += "<td style='width:15%;'><b>#{curr}</b></td>"
+        line += "<td>#{mid}</td>"
+        line += "<td><b>#{curr}</b></td>"
 
-        line += "<td><b>#{ '%0.8f' % bid }</b></td>" 
         line += "<td><b>#{'%0.8f' % ask}</b></td>"
+        line += "<td><b>#{ '%0.8f' % bid }</b></td>" 
         line += "<td>#{'%0.8f' % balance}</td> "
         line += "<td>#{'%0.8f' % btc_balance}</td> "
         line += "<td>#{'%0.2f' % usd_balance }</td> "
@@ -131,9 +154,23 @@ module CoinExchange
         last=dd[:last_price]
 
         diff = last.nil? ? 100 : (bid/last*100)
-        line += "<td>#{'%0.1f' % diff }</td>"  
+        diff_str=""
+        if diff>110
+          diff_str="<sapn style='color:red;'>#{'%0.1f' % diff}</span>"
+        else
+         diff_str="#{'%0.1f' % diff}"
+        end 
+        line += "<td>#{diff_str}</td>"  
+
+        ### rebalance
+        txt_code = "<input type='text' name='q' size='10' value='#{ '%0.3f' % 0 }'>"
+        btn_rebalance = "<button class='btn_tick_table_rebalance btn_style_green' data-curr='#{curr}'> *REBALANCE* </button>"
+        line += "<td>#{txt_code} #{btn_rebalance}</td>"   
+
+        line += "<td><a href='https://www.coinexchange.io/market/#{curr}/BTC' target='blank'>URL</a></td>"   
+
       
-        lines_tr<<"<tr>#{line}</tr>"
+        lines_tr<<{tr: "<tr>#{line}</tr>", diff: diff}
       end
       
       upd ="upd #{DateTime.now.strftime('%k:%M:%S')} "
@@ -141,11 +178,27 @@ module CoinExchange
       .select.with_index { |x, i| i<10 || i % 5 == 0 }
       .map { |dd|  '%6.0f' % dd }.join(', ') 
 
+
+      sorted_lines =[]
+      sorted_lines<<
+        "<th style='width:8%;'>mid</th>
+        <th style='width:8%;'>MARKET</th>
+        <th>ASK</th>
+        <th>BID</th>
+        <th>balance</th>
+        <th>BTC</th>
+        <th>USDT</th>
+        <th>diff</th>
+        <th style='width:30%;'>Manage</th>
+        <th>URL</th>"
+      #sorted_lines += lines_tr.sort_by{|xx| xx[:diff]}.map{|xx| xx[:tr]}
+      sorted_lines += lines_tr.map{|xx| xx[:tr]}
+
       "#{upd}<br /> 
       ETH_USD price #{'%0.2f' % eth_bid} <br /> 
       BTC_USD #{bf_btc_price} <br /> 
       USDT: #{'%0.2f' % sum_usd_bal} BTC: #{'%0.6f' % sum_btc_bal}<br />
-      <table class='forumTable' style='width:50%;'>#{lines_tr.join()}</table>
+      <table class='forumTable' style='width:60%;'>#{sorted_lines.join()}</table>
       <br/> 
       #{simul_table}"
 

@@ -47,7 +47,43 @@ function bigTick() {
 
     $.get('/coinexch/trade/table_tick', function(data) {
         $('#tick').html(data);
+        bind_tick_table();
     });
+}
+
+function bind_tick_table(){
+
+
+  $('.btn_tick_table_rebalance').click(function() {
+      var curr = $(this).data('curr');
+      var q = $(this).prev().val();
+      
+      $.get("/coinexch/trade/rebalance",{curr:curr,quant:q},
+          function(data) {
+            alert(data);
+      });            
+
+  });    
+
+  $('.btn_tick_table_simul_delete').click(function() {
+      var mid = $(this).data('mid');
+      
+      $.get("/coinexch/trade/delete_from_simul",{pair:mid},
+          function(data) {
+            alert(data);
+      });            
+
+  });    
+  
+  $('.btn_tick_table_update_rate').click(function() {
+      var mid = $(this).data('mid');
+      
+      $.get("/coinexch/trade/currency_tick",{pair:mid},
+          function(data) {
+            alert(data);
+      });            
+
+  });
 }
 
 

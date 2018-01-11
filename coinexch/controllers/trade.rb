@@ -9,7 +9,7 @@ Tweb::Coinexch.controllers :trade do
 
     @title = "coinexchange::trade"
     #@markets = CE_DB[:markets].join(:pump, :mid=>:MarketID).filter(BaseCurrencyCode:'BTC', level:1).all
-    @markets = CoinExchange::PriceAnalz.find_tokens_with_min_price(level,24).take(100)
+    @markets = CoinExchange::PriceAnalz.find_tokens_with_min_price(level,72).take(100)
 
     render 'index'
   end
@@ -49,6 +49,13 @@ Tweb::Coinexch.controllers :trade do
     "set_pumped #{mid} #{level}"  
   end
 
+  get '/rebalance' do
+    curr = params[:curr]
+    quant = params[:quant]
+    CoinExchange::BalanceUtil.rebalance(curr,quant)
+    return "--rebalance curr:#{curr} quant:#{quant}"
+  end
+
   get '/add_to_simul' do
     mid = params[:mid]
     CoinExchange::BalanceUtil.add_to_simul(mid)
@@ -56,14 +63,22 @@ Tweb::Coinexch.controllers :trade do
   end
 
   get '/delete_from_simul' do
-    pair = params[:pair]
-    TradeUtil.delete_from_simul(pair)
-    return "deleted #{pair}"
+    mid = params[:pair]
+    CoinExchange::BalanceUtil.delete_from_simul(mid)
+    return "deleted #{mid}"
   end  
+
   get '/set_new_simul_price_mark' do
     
     pair = params[:pair]
     TradeUtil.new_simul_price_mark(pair)
     return "[simul] new_price #{pair}"
   end  
+
+  get '/currency_tick' do
+    market_id = params[:pair]
+    data = CoinExchange::Client.new.get_market_summary(market_id)
+    "#{market_id} [ask bid] %0.8f  %0.8f" % [data['AskPrice'], data['BidPrice']]
+  end  
+
 end

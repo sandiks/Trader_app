@@ -33,11 +33,11 @@ module CoinExchange
       DB[:my_ticks].where{bid>0}.to_hash(:name,[:bid,:ask])
     end
 
-    def self.symb_hash(base="BTC")
+    def self.name_to_market_id(base="BTC")
       DB[:markets].filter(BaseCurrencyCode:base).to_hash(:MarketAssetCode,:MarketID)
     end
     def self.marketId_to_name(mid,base="BTC")
-      DB[:markets].first(MarketID:mid,BaseCurrencyCode:base)[:MarketAssetCode]
+      DB[:markets].first(MarketID:mid,BaseCurrencyCode:base)[:MarketAssetCode] rescue nil
     end
 
     def self.get_hist_trades(symb)
@@ -48,25 +48,29 @@ module CoinExchange
        DB[:hst_trades].filter(market:symb, type:'buy').reverse_order(:date).first
     end 
   
-  ### simulator
-  def self.add_to_simul(mid)
-    p "add_to_simul"
-    ask = BalanceUtil.get_bid_ask_from_tick(mid)[1] rescue 0
-    DB[:simul_markets].filter(pid:get_profile,mid:mid).delete
-    DB[:simul_markets].insert({pid:get_profile,mid:mid, ppu:ask, buy_time: date_now(0)})
-  end
+    ### simulator
+    def self.add_to_simul(mid)
+      p "add_to_simul"
+      ask = BalanceUtil.get_bid_ask_from_tick(mid)[1] rescue 0
+      DB[:simul_markets].filter(pid:get_profile,mid:mid).delete
+      DB[:simul_markets].insert({pid:get_profile,mid:mid, ppu:ask, buy_time: date_now(0)})
+    end
 
-  def self.new_simul_price_mark(mid)
-    
-    ask = BalanceUtil.get_bid_ask_from_tick(mid)[1] rescue 0
-    DB[:simul_markets].filter(pid:get_profile,mid:mid).update({ppu:ask, buy_time: date_now(0)})
-  end
+    def self.new_simul_price_mark(mid)
+      
+      ask = BalanceUtil.get_bid_ask_from_tick(mid)[1] rescue 0
+      DB[:simul_markets].filter(pid:get_profile,mid:mid).update({ppu:ask, buy_time: date_now(0)})
+    end
 
 
-  def self.delete_from_simul(mname)
-    DB[:simul_markets].filter(pid:get_profile,mid:mname).delete
-  end 
-    
+    def self.delete_from_simul(mid)
+      DB[:simul_markets].filter(pid:get_profile,mid:mid).delete
+    end 
+
+    def self.rebalance(curr,q)
+      p "rebalance"
+      DB[:wallets].filter(currency:curr).update({balance:q})
+    end    
 
   end
 end

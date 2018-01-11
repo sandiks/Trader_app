@@ -12,6 +12,10 @@ module Cryptopia
     def self.base_curr
        "ETH"
     end
+    def self.get_profile
+      2
+      #type=='simulate' ? 1 : 2
+    end       
 
     def self.btc_usd
       usd_bid = BF_DB[:my_ticks].filter(symb:3).select(:bid,:ask).first
@@ -20,23 +24,20 @@ module Cryptopia
     def self.my_btc
        DB[:balances].filter(curr:'BTC').first[:balance] 
     end
+  
+    def self.get_bid_ask_from_tick(mid) 
+      DB[:my_ticks].filter(name:mid).select_map([:bid,:ask]).first
+    end    
      
     def self.get_all_bid_ask
       DB[:my_ticks].where{bid>0}.to_hash(:name,[:bid,:ask])
     end
 
-    def self.symb_hash
+    def self.name_to_market_id
       DB[:markets].to_hash(:Label, :TradePairId)
     end
-
-    def  self.show_order_book(symb="")
-        symb="BTC-XRB"
-        orders = get_order_book(symb)
-
-        orders['asks'].take(10).each do |ord| 
-            p "price: %0.8f  amount: %0.8f" % [ ord['price'], ord['amount'] ]
-        end
-
+    def self.marketId_to_name(mid)
+      DB[:markets].first(TradePairId:mid)[:Label]
     end
 
     def self.get_hist_trades(symb)
@@ -46,9 +47,30 @@ module Cryptopia
     def self.last_buy_trade(symb)
        DB[:hst_trades].filter(market:symb, type:'buy').reverse_order(:date).first
     end 
+  
+    ### simulator
+    def self.add_to_simul(mid)
+      ask = BalanceUtil.get_bid_ask_from_tick(mid)[1] rescue 0
+      p "--- add_to_simul ask #{ask}"
+      DB[:simul_markets].filter(pid:get_profile,mid:mid).delete
+      DB[:simul_markets].insert({pid:get_profile,mid:mid, ppu:ask, buy_time: date_now(0)})
+    end
 
- 
+    def self.new_simul_price_mark(mid)
+      
+      ask = BalanceUtil.get_bid_ask_from_tick(mid)[1] rescue 0
+      DB[:simul_markets].filter(pid:get_profile,mid:mid).update({ppu:ask, buy_time: date_now(0)})
+    end
+
+
+    def self.delete_from_simul(mid)
+      DB[:simul_markets].filter(pid:get_profile,mid:mid).delete
+    end 
     
-
+    def self.rebalance(curr,q)
+      p "rebalance"
+      DB[:wallets].filter(currency:curr).update({balance:q})
+    end    
+    
   end
 end

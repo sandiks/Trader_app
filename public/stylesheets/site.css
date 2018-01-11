@@ -9,7 +9,17 @@
     text-align: center;
     display: inline-block;
     font-size: 15px;
+} 
+.btn_style_small_red{
+    background-color: #f16e6e; /* PINK */
+    margin: 1px;
+    padding: 3px;
+    border: none;
+    text-align: center;
+    display: inline-block;
+    font-size: 15px;
 }  
+
 .btn_fast_sell, .btn_style_red{
     background-color: #f16e6e; /* PINK */
     margin: 3px;
