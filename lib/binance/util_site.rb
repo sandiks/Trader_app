@@ -1,11 +1,10 @@
 require 'sequel'
 
-module CoinExchange
+module Binance
 
   class SiteUtil
 
-    DB = Sequel.connect(adapter: 'mysql2', host: 'localhost', database: 'coinexch', user: 'root')
-    BF_DB = Sequel.connect(adapter: 'mysql2', host: 'localhost', database: 'bitfinex', user: 'root')
+    DB = Sequel.connect(adapter: 'mysql2', host: 'localhost', database: 'binance', user: 'root')
     
 
     def self.date_now(hours_back=0); DateTime.now.new_offset(0/24.0)- hours_back/(24.0) ; end
@@ -33,10 +32,8 @@ module CoinExchange
     def self.get_balance_for_site
 
       
-      ticks = CoinExchange::BalanceUtil.get_all_bid_ask 
-      usd_bid = CoinExchange::BalanceUtil.btc_usd[:bid]
-
-      name_mid= CoinExchange::BalanceUtil.name_to_market_id('BTC')
+      ticks = Binance::BalanceUtil.get_all_bid_ask 
+      usd_bid = Binance::BalanceUtil.btc_usd[:bid]
 
       data = DB[:wallets].all   
       res=[]     
@@ -48,9 +45,9 @@ module CoinExchange
         next if balance==0
 
         bid = ask = 1
-        mid = name_mid[curr]
+        symbol = "#{curr}BTC" 
         if curr!="BTC"
-          bid,ask =ticks[mid] 
+          bid,ask =ticks[symbol] 
         end
 
         bid = 0.00000001 unless bid
@@ -60,7 +57,7 @@ module CoinExchange
         usd_bal = btc_bal*usd_bid 
         #next unless usd_bal<5
         #p " curr #{curr} bal #{balance} usd_bid #{usd_bid} bid #{bid}"
-        res<<{mid:mid ,currency:curr, bid:bid||0, ask:ask||0, last_price:dd[:last_price], balance:balance, btc_balance:btc_bal, 
+        res<<{mid:0 ,currency:curr, bid:bid||0, ask:ask||0, last_price:dd[:last_price], balance:balance, btc_balance:btc_bal, 
           usd_balance:usd_bal}
       end
       res.sort_by{|x| x[:btc_balance]}
@@ -68,17 +65,20 @@ module CoinExchange
     
     def self.simul_table
       simul = DB[:simul_markets].all
-      ticks = CoinExchange::BalanceUtil.get_all_bid_ask 
+      ticks = Binance::BalanceUtil.get_all_bid_ask 
 
       lines_tr=[]
 
       simul.each do |pair|
-        mid = pair[:mid].to_i
+
+        mid=0
+
+        name = pair[:name]
         last = pair[:ppu]
-        bid,ask = ticks[mid] 
+        bid,ask = ticks[name] 
+        
         bid,ask =1,1 unless bid 
 
-        name= CoinExchange::BalanceUtil.marketId_to_name(mid)
         next unless name  
         line ="" 
         line += "<td style='width:8%;'>#{mid}</td>"
@@ -89,6 +89,7 @@ module CoinExchange
 
         diff = last.nil? ? 100 : (ask/last*100)
         diff_str=""
+
         if diff>120
           diff_str="<sapn style='color:red;'>#{'%0.1f' % diff}</span>"
         else
@@ -96,10 +97,11 @@ module CoinExchange
         end 
 
         line += "<td>#{diff_str}</td>" 
-        line += "<td><a href='https://www.coinexchange.io/market/#{name}/BTC' target='blank'>URL</a></td>"   
+        line += "<td><a href='https://www.binance.com/trade.html?symbol=#{name.sub("BTC","")}_BTC' target='blank'>URL</a></td>"   
+
         
-        btn_delete = "<button class='btn_tick_table_simul_delete' data-mid='#{mid}'> del </button>"
-        btn_update_rate = "<button class='btn_tick_table_update_rate' data-mid='#{mid}'> rate </button>"
+        btn_delete = "<button class='btn_tick_table_simul_delete' data-mname='#{name}'> del </button>"
+        btn_update_rate = "<button class='btn_tick_table_update_rate' data-mname='#{name}'> rate </button>"
         line += "<td>#{btn_delete} #{btn_update_rate}</td>"
 
       
@@ -119,6 +121,7 @@ module CoinExchange
    
      
       lines_tr=[]
+      
       rates = RateUtil.get_all_bid_ask 
       
       eth_bid = rates['ETHUSDT'][0]
@@ -166,14 +169,14 @@ module CoinExchange
         btn_rebalance = "<button class='btn_tick_table_rebalance btn_style_green' data-curr='#{curr}'> *REBALANCE* </button>"
         line += "<td>#{txt_code} #{btn_rebalance}</td>"   
 
-        line += "<td><a href='https://www.coinexchange.io/market/#{curr}/BTC' target='blank'>URL</a></td>"   
+        line += "<td><a href='https://www.binance.com/trade.html?symbol=#{curr}_BTC' target='blank'>URL</a></td>"   
 
       
         lines_tr<<{tr: "<tr>#{line}</tr>", diff: diff}
       end
       
       upd ="upd #{DateTime.now.strftime('%k:%M:%S')} "
-      bf_btc_price = BF_DB[:hst_rates].filter(symb:3).reverse_order(:date).limit(10).select_map(:bid)
+      btc_price = DB[:hst_rates].filter(name: 'BTCUSDT').reverse_order(:date).limit(10).select_map(:bid)
       .select.with_index { |x, i| i<10 || i % 5 == 0 }
       .map { |dd|  '%6.0f' % dd }.join(', ') 
 
@@ -195,7 +198,7 @@ module CoinExchange
 
       "#{upd}<br /> 
       ETH_USD price #{'%0.2f' % eth_bid} <br /> 
-      BTC_USD #{bf_btc_price} <br /> 
+      BTC_USD #{btc_price} <br /> 
       USDT: #{'%0.2f' % sum_usd_bal} BTC: #{'%0.6f' % sum_btc_bal}<br />
       <table class='forumTable' style='width:60%;'>#{sorted_lines.join()}</table>
       <br/> 

@@ -27,7 +27,8 @@ gem 'socksify'
 gem 'mechanize'
 gem 'rufus-scheduler'
 gem 'faraday'
-gem 'bitfinex-rb'
+#gem 'bitfinex-rb'
+gem 'binance'
 # Test requirements
 
 # Padrino Stable Gem

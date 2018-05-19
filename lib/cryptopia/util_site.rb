@@ -99,18 +99,18 @@ module Cryptopia
       "<table class='forumTable' style='width:40%;'>#{lines_tr.join()}</table>"
 
     end
-    
+
+    def self.get_all_bid_ask
+    end
+
     def self.table_tick
    
      
       lines_tr=[]
-
-
-      bf_symbols=BitfinexDB.symb_hash
-      bf_rates = BF_SiteUtil.get_all_bid_ask 
+      rates = RateUtil.get_all_bid_ask 
       
-      eth_bid = bf_rates[bf_symbols["ETHUSD"]][0]
-      btc_bid = bf_rates[bf_symbols["BTCUSD"]][0]
+      eth_bid = rates['ETHUSDT'][0]
+      btc_bid = rates['BTCUSDT'][0]
 
       data = get_balance_for_site
       sum_usd_bal =0

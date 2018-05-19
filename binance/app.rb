@@ -1,5 +1,5 @@
 module Tweb
-  class App < Padrino::Application
+  class Binance < Padrino::Application
     register Padrino::Mailer
     register Padrino::Helpers
     enable :sessions
@@ -8,11 +8,11 @@ module Tweb
     # Caching support.
     #
     # register Padrino::Cache
-     enable :caching
+    # enable :caching
     #
     # You can customize caching store engines:
     #
-     set :cache, Padrino::Cache.new(:LRUHash) # Keeps cached values in memory
+    # set :cache, Padrino::Cache.new(:LRUHash) # Keeps cached values in memory
     # set :cache, Padrino::Cache.new(:Memcached) # Uses default server at localhost
     # set :cache, Padrino::Cache.new(:Memcached, :server => '127.0.0.1:11211', :exception_retry_limit => 1)
     # set :cache, Padrino::Cache.new(:Memcached, :backend => memcached_or_dalli_instance)
@@ -60,13 +60,5 @@ module Tweb
     #     render 'errors/500'
     #   end
     #
-    set :protection, true
-    set :protect_from_csrf, false
-    set :allow_disabled_csrf, true
-
-    
-    get '/' do
-      redirect '/binance/trade'
-    end    
   end
 end

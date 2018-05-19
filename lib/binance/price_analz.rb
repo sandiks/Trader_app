@@ -1,12 +1,12 @@
 require 'sequel'
 
 
-module Cryptopia
+module Binance
 
   class PriceAnalz
 
     PID=2
-    DB = Sequel.connect(adapter: 'mysql2', host: 'localhost', database: 'cryptopia', user: 'root')
+    DB = Sequel.connect(adapter: 'mysql2', host: 'localhost', database: 'binance', user: 'root')
     GROUP=1
     
     def self.date_now(hours_back=0); DateTime.now.new_offset(0/24.0)- hours_back/(24.0) ; end
@@ -22,21 +22,22 @@ module Cryptopia
       mins = 12.times.map {|i| i<6 ? (now.min+i)%60 : (30+now.min+i)%60 }
 
       all_data = DB[:hst_rates]
-        .filter(Sequel.lit(" (date > ? and mid in ? and MINUTE(date) in ? )", from, market_list, mins))
-        .reverse_order(:date).select(:mid,:date,:bid,:ask).all
+        .filter(Sequel.lit(" (date > ? and name in ? and MINUTE(date) in ? )", from, market_list, mins))
+        .reverse_order(:date).select(:name,:date,:bid,:ask).all
     end
+
 
     def self.get_crypto_rates(from, market_list)
 
-      all_data = DB[:hst_rates].filter( Sequel.lit(" (date > ? and mid in ?)", from, market_list) )
-      .reverse_order(:date).select(:mid,:date,:bid,:ask).all
+      all_data = DB[:hst_rates].filter( Sequel.lit(" (date > ? and name in ?)", from, market_list) )
+      .reverse_order(:date).select(:name,:date,:bid,:ask).all
       
     end
 
-    def self.last_market_prices(mid, hours_back)## for pirce controller
+    def self.last_market_prices(symbol, hours_back)## for pirce controller
 
       from = date_now(hours_back)
-      prices = get_crypto_rates(from,[mid])   
+      prices = get_crypto_rates(from,[symbol])   
       return nil if  prices.size==0
 
       last_bid = prices.first[:bid]
@@ -58,12 +59,10 @@ module Cryptopia
 
       p "find_tokens_with_min_price -- hours_back:#{hours_back}"
 
-      #markets_hash = DB[:markets].join(:pump, :mid=>:MarketID).filter(BaseCurrencyCode:'BTC', level:[1,2])
+      #markets = DB[:markets].join(:pump, :name=>:name).filter(quoteAsset:'BTC', level:level)
+      markets = DB[:markets].filter(quoteAsset:'BTC')
+      .select_map(:symbol)
       
-      markets_hash = DB[:markets].join(:pump, :mid=>:TradePairId)
-      .filter(Sequel.lit(" Label LIKE '%/BTC' and level=?", level)).to_hash(:TradePairId, :Label)
-      
-      markets = markets_hash.keys
 
       now = date_now(0)
       from = date_now(hours_back.to_i)
@@ -72,24 +71,27 @@ module Cryptopia
 
       all_data = get_crypto_rates_with_minutes(from, markets) 
 
-      markets.each do |mid|
+      markets.each do |symb|
 
         ind+=1
 
-        data = all_data.select{|dd| dd[:mid] == mid }
+
+        data = all_data.select{|dd| dd[:name] == symb }
         next if data.size==0 
 
         res=[]
 
         last_bid=data[0][:bid]
         last_ask=data[0][:ask]
-        next if last_bid==0
         
-        #prices = data.map { |dd| (dd[:bid]/last_bid*1000) }
+        #next if last_bid==0
         
-        prices = data.map { |dd| (dd[:ask]/last_ask*1000) }
+        prices = data.map { |dd| (dd[:bid]/last_bid*1000) }
         minp = prices.min  
         maxp = prices.max
+
+        #p "minp #{'%0.8f' % minp} maxp #{'%0.8f' % maxp}"
+
         next if maxp-minp ==0 
 
         ### calculate factor
@@ -98,17 +100,17 @@ module Cryptopia
         first_max = prices.first(2).max
         ff=(first_max-minp)/(maxp-minp) + (last_ask/last_bid)
 
-        title = markets_hash[mid]
+        title =symb
         hist=""
   
-        sparse_data = data.select.with_index { |x, i| i % 3 == 0 }
+        sparse_data = data.select.with_index { |x, i| (i<2) || (i % 10 == 0) }
         .group_by{|dd| [dd[:date].day,dd[:date].hour/6]}
-
+        
         hist = sparse_data.map { |d_hh, hour_rates| 
-          [ "d-#{d_hh[0]}.#{d_hh[1]}", hour_rates.map { |dd| "#{'%3.0f' % (dd[:ask]/last_ask*100)}" } ].join(' ') 
+          ["d-#{d_hh[0]} [#{d_hh[1]}]", hour_rates.map { |dd| "#{'%3.0f' % (dd[:bid]/last_ask*1000)}" } ].join(' ') 
         }.join("<br />")
 
-        ress<< { mid: mid, title: title, price_factor: ff, 
+        ress<< { mid: 0, title: title, price_factor: ff, 
           bid: last_bid, ask:last_ask, hist_prices:hist }
         
       end

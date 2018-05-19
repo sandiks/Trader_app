@@ -1,0 +1,157 @@
+<%= partial 'text_price_dialog' %>
+
+<script type="text/javascript">
+
+$(function() {
+    bigTick();
+    //bind_fast_buy_sell_buttons();
+
+    $('#btn_refresh_balance').click(function() {
+      $.get('/binance/refresh_balance', function(data) {
+          //$('#tick').html(data);
+          //location.reload();
+      });
+    });    
+
+    $('#btn_load_hist_trades').click(function() {
+      if(!window.confirm( 'Are you sure?' )){
+            return
+      }
+
+      $.get('/coinexch/load_hist_trades', function(data) {
+          alert(data);
+      });
+    }); 
+
+    $('.btn_set_pump_level').click(function() {
+      var mname = $(this).data('mname');
+      var level = $(this).data('level');
+
+      $.get('/binance/trade/set_pumped/',{mname:mname,level:level}, function(data) {
+          alert(data);
+      });
+    }); 
+
+    $('.btn_add_to_simul').click(function() {
+      var mname = $(this).data('mname');
+
+      $.get('/binance/trade/add_to_simul/',{mname:mname}, function(data) {
+          alert(data);
+      });
+    });     
+    
+});
+
+function bigTick() {
+    setTimeout(bigTick,20000);
+
+    $.get('/binance/trade/table_tick', function(data) {
+        $('#tick').html(data);
+        bind_tick_table();
+    });
+}
+
+function bind_tick_table(){
+
+
+  $('.btn_tick_table_rebalance').click(function() {
+      var curr = $(this).data('curr');
+      var q = $(this).prev().val();
+      
+      $.get("/binance/trade/rebalance",{curr:curr,quant:q},
+          function(data) {
+            alert(data);
+      });            
+
+  });    
+
+  $('.btn_tick_table_simul_delete').click(function() {
+      var mname = $(this).data('mname');
+      
+      $.get("/binance/trade/delete_from_simul",{mname:mname},
+          function(data) {
+            alert(data);
+      });            
+
+  });    
+  
+  $('.btn_tick_table_update_rate').click(function() {
+      var mname = $(this).data('mname');
+      
+      $.get("/binance/trade/currency_tick",{mname:mname},
+          function(data) {
+            alert(data);
+      });            
+
+  });
+}
+
+
+</script>
+
+<div style="margin-left:20px;">
+
+  <img src="/images/binance.png" class="main-header-logo3" alt="CoinExchange.io">
+</div>
+
+<div style="margin-left:20px;">
+  
+  <button id='btn_refresh_balance' class="btn_style_red"> REFRESH BALANCE</button>
+  <button id='btn_load_hist_trades' class="btn_style_red"> LOAD HIST TRADES</button>
+  <button class="btn_open_orders btn_style_red" data-market="all">ALL OPENED_ORDERS</button>
+</div>
+
+
+<div id="tick" style="color:green;margin: 20px;20px;0px;0px">
+    tick
+</div>
+
+<div style="margin-left:20px;">
+  
+  <div id="line_tick" style="color:green;margin-bottom: 20px;">      
+  </div>  
+
+  <div style="margin-left:20px;">
+    <a href="/coinexch/trade?level=0">LEVEL0</a>
+    <a href="/coinexch/trade?level=1">LEVEL1</a>
+    <a href="/coinexch/trade?level=2">LEVEL2</a>
+  </div>
+
+  <div style="margin-left:20px;">
+    <table class="forumTable" style="width:80%;">
+        <tr>
+          <th style='width:5%;'>market id</th>
+          <th style='width:8%;'>name</th>
+          <th style='width:40%;'>hist prices</th>
+          <th style='width:12%;'>hist prices</th>
+          <th style='width:12%;'>SIMUL</th>
+          <th style='width:25%;'>pump</th>
+          <th style='width:15%;'>URL</th>
+        </tr>    
+
+        <% @markets.each do |mm|
+          mid = mm[:mid]
+          mname = mm[:title]
+        %> 
+          <tr> 
+            <td><%= mid%> </td>
+            <td><%= mname %> </td>
+            <td> <%= mm[:hist_prices].html_safe %></td>
+            <td>
+              <button class="btn_hours_price btn_style_blue" data-otype="ask" data-hours="96" data-market="<%=mname %>">PRICE 96h <%= mname %></button> 
+            </td>
+            <td>
+              <button class="btn_add_to_simul btn_style_green" data-mname="<%=mname%>">TO SIMUL</button>
+            </td>            
+            <td style="text-align:center">
+              <button class="btn_set_pump_level btn_style_red" data-level='0' data-mname="<%=mname%>">pump 0</button>
+              <button class="btn_set_pump_level btn_style_red" data-level='1' data-mname="<%=mname%>">pump 1</button>
+              <button class="btn_set_pump_level btn_style_red" data-level='2' data-mname="<%=mname%>">pump 2</button>
+            </td> 
+            <td><a href="https://www.binance.com/trade.html?symbol=<%=mname.sub('BTC','')%>_BTC" target='blank'>URL</a></td>
+
+          </tr>
+        <% end%>
+   </table>
+  </div>
+</div>
